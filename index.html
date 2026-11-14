@@ -109,6 +109,7 @@ section{display:grid;gap:10px}
 .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
 .chip.test{background:transparent;border-style:dashed}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.codigo{font-family:var(--font-display);font-size:1.25em;letter-spacing:.12em;text-transform:uppercase}
 
 /* Jogos */
 .list{display:grid;gap:8px}
@@ -228,7 +229,7 @@ var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 /* ---------- Estado ---------- */
 var S = {
   estado: "carregando", db: null, conta: null, usuario: null, authPronto: false, verificandoAdmin: false, admin: false,
-  jogos: [], confs: [], jogadores: [], convites: [],
+  jogos: [], confs: [], jogadores: [], convites: [], configs: [], criandoCodigo: false,
   carregado: {}, confirmado: {}, lento: false, erroCarga: null, subsAdm: [], timerLento: null,
   palco: lsGet("palco") === "1"
 };
@@ -506,13 +507,33 @@ VIEWS.entrar = function(){
 };
 VIEWS.semAcesso = function(){
   var u = S.usuario || {};
-  app.innerHTML = '<div class="card stack"><h1>Falta liberar sua conta</h1>' +
-    "<p>Você entrou como <b>" + esc(u.email || "") + "</b>, mas essa conta ainda não está na equipe.</p>" +
-    "<p>Para liberar, crie no Firebase (Firestore Database) a coleção <b>admins</b> com um documento cujo ID é este, com um campo qualquer, como nome. Ou peça ao Claude.</p>" +
-    '<pre class="msg">' + esc(u.uid || "") + "</pre>" +
-    '<div class="row-btns"><button class="btn primary" type="button" data-acao="copiar-uid">Copiar ID</button>' +
-    '<button class="btn ghost" type="button" data-acao="reverificar">Já criei</button>' +
-    '<button class="btn ghost" type="button" data-acao="sair-conta">Sair</button></div></div>';
+  app.innerHTML = '<div class="card stack"><span class="kicker">Quase lá</span><h1>Entrar no time</h1>' +
+    "<p>Você entrou como <b>" + esc(u.email || "") + "</b>. Digite o código do time: ele aparece no painel de quem já é da equipe.</p>" +
+    '<form id="f-codigo" class="form" novalidate>' +
+      '<label class="fld">Código do time<input id="fc-codigo" class="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>' +
+      '<div id="fc-erro" class="banner" hidden></div>' +
+      '<button class="btn primary block big" type="submit" id="fc-entrar">Entrar no time</button>' +
+    "</form>" +
+    '<details><summary class="note">Sem código? Liberar pelo ID</summary><div class="stack">' +
+      '<p class="note">Quem cuida do Firebase pode criar o documento admins/ID com um campo nome.</p>' +
+      '<pre class="msg">' + esc(u.uid || "") + "</pre>" +
+      '<div class="row-btns"><button class="btn ghost sm" type="button" data-acao="copiar-uid">Copiar ID</button>' +
+      '<button class="btn ghost sm" type="button" data-acao="reverificar">Já liberaram</button></div></div></details>' +
+    '<p><button class="link" type="button" data-acao="sair-conta">Sair desta conta</button></p></div>';
+  $("#f-codigo").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var cod = $("#fc-codigo").value.toUpperCase().replace(/[^A-Z0-9]/g, ""), erroEl = $("#fc-erro"), btn = $("#fc-entrar");
+    if (cod.length < 4){ erroEl.textContent = "Digite o código que o time te passou."; erroEl.hidden = false; return; }
+    btn.disabled = true; erroEl.hidden = true;
+    var nome = primeiroNome(u.nome) || String(u.email || "").split("@")[0];
+    gravar(function(){ return S.db.doc("admins/" + u.uid).set({ nome: nome.slice(0, 60), codigo: cod, criadoEm: Date.now() }); }, true).then(function(r){
+      if (r.ok){ toast("Pronto, você está no time"); verificarAdmin(); }
+      else {
+        erroEl.textContent = codigo({ code: r.code }) === "permission-denied" ? "Código errado. Confira com o time e tente de novo." : msgErro({ code: r.code });
+        erroEl.hidden = false; btn.disabled = false;
+      }
+    });
+  });
 };
 
 /* Painel */
@@ -539,6 +560,7 @@ VIEWS.painel = function(v){
     '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
     '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
     '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
+    '<section class="card stack" id="p-time"></section>' +
     '<p class="note">Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   v.update = function(){
     var m = metricas();
@@ -558,6 +580,15 @@ VIEWS.painel = function(v){
     $("#l-abertos").innerHTML = abertos.length ? abertos.map(cardJogo).join("") : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto. Toque em “Abrir jogo com vagas”." : "Carregando jogos…") + "</div>";
     $("#l-fechados").innerHTML = fechados.length ? fechados.map(cardJogo).join("") : '<div class="empty">Quando um jogo completar, ele aparece aqui.</div>';
     $$("[data-w]", app).forEach(function(s){ s.style.width = s.getAttribute("data-w") + "%"; });
+    var cod = codigoEquipe(), time = $("#p-time");
+    if (time && time.getAttribute("data-cod") !== String(cod)){
+      time.setAttribute("data-cod", String(cod));
+      time.innerHTML = cod
+        ? '<h2>Time</h2><p>Quem é do time entra com Google e digita o código <b class="codigo">' + esc(cod) + "</b>.</p>" +
+          '<div class="row-btns"><button class="btn primary sm" type="button" data-acao="copiar-acesso">Copiar convite para o time</button>' +
+          '<button class="btn ghost sm" type="button" data-acao="trocar-codigo">Trocar código</button></div>'
+        : '<h2>Time</h2><p class="note">Gerando o código do time…</p>';
+    }
   };
 };
 
@@ -932,6 +963,13 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "copiar-acesso"){
+    if (codigoEquipe()) copiar(conviteTime(codigoEquipe()), "Convite do time copiado");
+  } else if (a === "trocar-codigo"){
+    if (!armar(t, "Toque de novo para trocar")) return;
+    t.disabled = true;
+    gravar(function(){ return S.db.doc("config/equipe").set({ codigo: gerarCodigo(), criadoEm: Date.now() }); })
+      .then(function(r){ t.disabled = false; if (r.ok) toast("Código novo. O antigo não serve mais para entrar."); });
   } else if (a === "reverificar"){
     verificarAdmin();
   } else if (a === "copiar-msg"){
@@ -974,11 +1012,31 @@ document.addEventListener("click", function(ev){
   }
 });
 
+/* ---------- Código do time ---------- */
+function gerarCodigo(){
+  var abc = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", s = "", r = new Uint32Array(6);
+  if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(r);
+  else for (var k = 0; k < 6; k++) r[k] = Math.floor(Math.random() * 1e9);
+  for (var i = 0; i < 6; i++) s += abc[r[i] % abc.length];
+  return s;
+}
+function codigoEquipe(){ var c = S.configs.filter(function(d){ return d.id === "equipe"; })[0]; return c && c.codigo ? c.codigo : null; }
+function garantirCodigo(){
+  if (!S.admin || S.criandoCodigo || codigoEquipe()) return;
+  S.criandoCodigo = true;
+  gravar(function(){ return S.db.doc("config/equipe").set({ codigo: gerarCodigo(), criadoEm: Date.now() }); }, true)
+    .then(function(){ S.criandoCodigo = false; });
+}
+function conviteTime(cod){
+  return "Painel do Fechou: " + location.origin + location.pathname + "\n1. Toque em \"Entrar com Google\"\n2. Digite o código do time: " + cod;
+}
+
 /* ---------- Dados ao vivo ---------- */
 function sub(col, alvo, publico){
   return S.db.collection(col).onSnapshot(function(snap){
     S[alvo] = snap.docs.map(function(d){ var o = Object.assign({}, d.data()); o.id = d.id; return o; });
     S.carregado[col] = true;
+    if (col === "config") garantirCodigo();
     if (publico && (!snap.metadata || !snap.metadata.fromCache)){
       S.confirmado[col] = true;
       if (S.confirmado.jogos && S.confirmado.confirmacoes){ clearTimeout(S.timerLento); S.lento = false; }
@@ -999,9 +1057,9 @@ function assinarPublico(){
 }
 function desassinarAdmin(){
   S.subsAdm.forEach(function(u){ try { u(); } catch(e){} });
-  S.subsAdm = []; S.jogadores = []; S.convites = []; S.carregado.jogadores = false; S.carregado.convites = false;
+  S.subsAdm = []; S.jogadores = []; S.convites = []; S.configs = []; S.carregado.jogadores = false; S.carregado.convites = false; S.carregado.config = false;
 }
-function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false)]; }
+function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false), sub("config", "configs", false)]; }
 function verificarAdmin(){
   if (!S.usuario) return;
   var uid = S.usuario.uid;
@@ -1025,7 +1083,7 @@ function iniciar(){
     assinarPublico();
     S.conta.aoMudar(function(u){
       S.authPronto = true;
-      S.usuario = u ? { uid: u.uid, email: u.email || "" } : null;
+      S.usuario = u ? { uid: u.uid, email: u.email || "", nome: u.displayName || "" } : null;
       if (!S.usuario){ S.admin = false; S.verificandoAdmin = false; desassinarAdmin(); montar(); return; }
       verificarAdmin();
     });

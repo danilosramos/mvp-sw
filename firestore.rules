@@ -4,7 +4,7 @@ rules_version = '2';
 // - Jogos e confirmações: qualquer um lê (é o que o convite mostra).
 // - Jogador sem conta: só cria a própria confirmação, num jogo que existe.
 // - Lista de jogadores (com WhatsApp) e convites: só a equipe lê e escreve.
-// - Equipe = conta com um documento em /admins/{uid}, criado à mão no console.
+// - Equipe = conta com um documento em /admins/{uid}. A pessoa entra no time com o código do time.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -26,9 +26,22 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId));
     }
 
+    // Entrar no time: a própria pessoa cria admins/{uid} com o código do time certo.
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nome', 'codigo', 'criadoEm'])
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() <= 60
+        && request.resource.data.codigo is string
+        && exists(/databases/$(database)/documents/config/equipe)
+        && request.resource.data.codigo == get(/databases/$(database)/documents/config/equipe).data.codigo;
+      allow update, delete: if false;
+    }
+
+    // Código do time: só quem já é do time lê e troca.
+    match /config/{id} {
+      allow read, write: if ehEquipe();
     }
 
     match /jogadores/{id} {

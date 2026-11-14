@@ -26,11 +26,12 @@ A arena (ou a equipe, no papel de concierge) abre um horário vago ou um grupo i
 - **Login da equipe:** Google. O domínio `danilosramos.github.io` está nos domínios autorizados do Firebase.
 - **[`config.js`](config.js)** já aponta para o projeto.
 
-### Liberar alguém da equipe
+### Colocar alguém no time
 
-1. A pessoa abre o app e toca em **Entrar com Google**. O app mostra o ID dela.
-2. No Firebase, em **Firestore Database** > Dados, abra (ou crie) a coleção `admins` e adicione um documento com esse ID e um campo `nome`.
-3. A pessoa toca em **Já criei**.
+1. No rodapé do painel, toque em **Copiar convite para o time** e mande no grupo. A mensagem tem o link e o código do time.
+2. A pessoa abre o link, toca em **Entrar com Google** e digita o código.
+
+Se o código vazar, toque em **Trocar código**: o antigo para de funcionar para novas entradas. Quem já entrou continua no time; para tirar alguém, apague o documento dela na coleção `admins` do Firestore.
 
 ### Primeiro acesso
 
