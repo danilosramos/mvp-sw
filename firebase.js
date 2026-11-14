@@ -5,7 +5,7 @@ import {
   getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 const resolver = window.__resolverBackend || function () {};
@@ -36,9 +36,13 @@ if (!cfg.apiKey || cfg.apiKey === "COLE_AQUI" || !cfg.projectId) {
       }
     };
 
+    const google = new GoogleAuthProvider();
+    google.setCustomParameters({ prompt: "select_account" });
+
     // Equipe = conta com um documento em admins/{uid}
     const conta = {
       aoMudar(cb) { return onAuthStateChanged(auth, cb); },
+      entrarGoogle() { return signInWithPopup(auth, google); },
       entrar(email, senha) { return signInWithEmailAndPassword(auth, email, senha); },
       sair() { return signOut(auth); },
       async ehAdmin(uid) {

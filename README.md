@@ -20,29 +20,31 @@ A arena (ou a equipe, no papel de concierge) abre um horário vago ou um grupo i
 | Placar ao vivo e reserva gerada em R$ | |
 | Painel só com jogos reais (teste fica fora) | |
 
-## Configurar (uma vez, uns 15 minutos)
+## Como está configurado
 
-### 1. Firebase
+- **Firebase:** projeto `fechou-sw`, Firestore em `southamerica-east1` (São Paulo), com as regras de [`firestore.rules`](firestore.rules) publicadas.
+- **Login da equipe:** Google. O domínio `danilosramos.github.io` está nos domínios autorizados do Firebase.
+- **[`config.js`](config.js)** já aponta para o projeto.
 
-1. Entre em https://console.firebase.google.com e crie um projeto (pode desligar o Google Analytics).
-2. **Firestore Database** > Criar banco de dados > local `southamerica-east1 (São Paulo)` > modo de produção.
-3. Na aba **Regras**, apague o que estiver lá, cole o conteúdo de [`firestore.rules`](firestore.rules) e clique em **Publicar**.
-4. **Authentication** > Vamos começar > **E-mail/senha** > Ativar > Salvar. Na aba **Usuários**, clique em **Adicionar usuário** e crie a conta da equipe. Copie o **UID** que aparece na lista.
-5. Volte ao **Firestore Database** > Iniciar coleção > ID da coleção `admins` > ID do documento = o UID copiado > um campo `nome` (string) com o seu nome > Salvar. Cada pessoa da equipe precisa de uma conta e de um documento desses.
-6. Engrenagem > **Configurações do projeto** > Seus apps > ícone **</>** (Web) > registre o app > copie o objeto `firebaseConfig` e cole os valores em [`config.js`](config.js).
+### Liberar alguém da equipe
 
-Se você entrar no app antes do passo 5, ele mostra o seu UID com um botão para copiar.
+1. A pessoa abre o app e toca em **Entrar com Google**. O app mostra o ID dela.
+2. No Firebase, em **Firestore Database** > Dados, abra (ou crie) a coleção `admins` e adicione um documento com esse ID e um campo `nome`.
+3. A pessoa toca em **Já criei**.
 
-### 2. GitHub Pages
+### Primeiro acesso
 
-Settings > Pages > Source: **Deploy from a branch** > `main` / `(root)` > Save. Em 1 ou 2 minutos o app fica no ar.
-
-### 3. Primeiro acesso
-
-1. Abra o app e entre com a conta da equipe.
-2. **Jogadores** > **Importar lista do formulário (.json)** > escolha o arquivo gerado das respostas do Tally.
+**Jogadores** > **Importar lista do formulário (.json)** > arquivo gerado das respostas do Tally.
 
 O arquivo de jogadores tem nome e WhatsApp de pessoas reais: **nunca suba esse arquivo para este repositório**.
+
+### Recriar do zero, em outro projeto Firebase
+
+1. Crie um projeto em https://console.firebase.google.com.
+2. **Firestore Database** > Criar banco de dados > São Paulo > modo de produção. Na aba **Regras**, cole `firestore.rules` e publique.
+3. **Authentication** > Método de login > **Google** > Ativar. Em Configurações > **Domínios autorizados**, adicione o domínio do GitHub Pages.
+4. **Configurações do projeto** > Seus apps > **Web (</>)** > copie o `firebaseConfig` para `config.js`.
+5. No GitHub: Settings > Pages > **Deploy from a branch** > `main` / `(root)`.
 
 ## Como usar
 

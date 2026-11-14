@@ -485,34 +485,30 @@ VIEWS.semBanco = function(){
 };
 function msgLogin(e){
   var c = String((e && e.code) || "");
-  if (/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(c)) return "E-mail ou senha errados.";
-  if (/too-many-requests/.test(c)) return "Muitas tentativas. Espere alguns minutos.";
+  if (/popup-closed-by-user|cancelled-popup-request|user-cancelled/.test(c)) return "Login cancelado. Toque de novo para entrar.";
+  if (/popup-blocked/.test(c)) return "O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.";
+  if (/unauthorized-domain/.test(c)) return "Este endereço não está autorizado no Firebase (Authentication > Configurações > Domínios autorizados).";
+  if (/operation-not-allowed/.test(c)) return "O login com Google está desligado no Firebase (Authentication > Método de login).";
+  if (/web-storage-unsupported|internal-error|disallowed/.test(c)) return "Abra este link no Chrome ou no Safari, não pelo navegador do WhatsApp.";
   if (/network/.test(c)) return "Sem internet. Tente de novo.";
-  if (/operation-not-allowed/.test(c)) return "O login por e-mail e senha está desligado no Firebase (Authentication).";
   return "Não consegui entrar (" + (c || "erro desconhecido") + ").";
 }
 VIEWS.entrar = function(){
   app.innerHTML = '<div class="card stack"><span class="kicker">Equipe da arena</span><h1>Entrar no painel</h1>' +
     '<p class="note">Jogador não precisa de conta: o link do convite abre direto.</p>' +
-    '<form id="f-login" class="form" novalidate>' +
-      '<label class="fld">E-mail<input id="fl-email" type="email" autocomplete="username" inputmode="email"></label>' +
-      '<label class="fld">Senha<input id="fl-senha" type="password" autocomplete="current-password"></label>' +
-      '<div id="fl-erro" class="banner" hidden></div>' +
-      '<button class="btn primary block big" type="submit" id="fl-btn">Entrar</button>' +
-    "</form></div>";
-  $("#f-login").addEventListener("submit", function(ev){
-    ev.preventDefault();
-    var email = $("#fl-email").value.trim(), senha = $("#fl-senha").value, erroEl = $("#fl-erro"), btn = $("#fl-btn");
-    if (!email || !senha){ erroEl.textContent = "Preencha e-mail e senha."; erroEl.hidden = false; return; }
+    '<button class="btn primary block big" type="button" id="fl-google">Entrar com Google</button>' +
+    '<div id="fl-erro" class="banner" hidden></div></div>';
+  $("#fl-google").addEventListener("click", function(){
+    var btn = this, erroEl = $("#fl-erro");
     btn.disabled = true; erroEl.hidden = true;
-    S.conta.entrar(email, senha).catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
+    S.conta.entrarGoogle().catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
   });
 };
 VIEWS.semAcesso = function(){
   var u = S.usuario || {};
   app.innerHTML = '<div class="card stack"><h1>Falta liberar sua conta</h1>' +
     "<p>Você entrou como <b>" + esc(u.email || "") + "</b>, mas essa conta ainda não está na equipe.</p>" +
-    "<p>No Firebase, abra <b>Firestore Database</b>, crie a coleção <b>admins</b> e um documento com este ID (com um campo qualquer, como nome):</p>" +
+    "<p>Para liberar, crie no Firebase (Firestore Database) a coleção <b>admins</b> com um documento cujo ID é este, com um campo qualquer, como nome. Ou peça ao Claude.</p>" +
     '<pre class="msg">' + esc(u.uid || "") + "</pre>" +
     '<div class="row-btns"><button class="btn primary" type="button" data-acao="copiar-uid">Copiar ID</button>' +
     '<button class="btn ghost" type="button" data-acao="reverificar">Já criei</button>' +
