@@ -110,6 +110,10 @@ section{display:grid;gap:10px}
 .chip.test{background:transparent;border-style:dashed}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
 .codigo{font-family:var(--font-display);font-size:1.25em;letter-spacing:.12em;text-transform:uppercase}
+.filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.filtros .check{grid-column:1/-1}
+.beneficios{margin:0;padding-left:20px;display:grid;gap:8px}
+.plano{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
 
 /* Jogos */
 .list{display:grid;gap:8px}
@@ -223,6 +227,8 @@ var NIVEL_DESC = ["","Iniciante: começou agora","Básico: joga por diversão","
 var HORARIOS = ["Manhã em dia útil","Tarde em dia útil","Noite em dia útil","Sábado de manhã","Sábado à tarde ou noite","Domingo de manhã","Domingo à tarde ou noite"];
 var HORARIO_CURTO = {"Manhã em dia útil":"Seg–sex manhã","Tarde em dia útil":"Seg–sex tarde","Noite em dia útil":"Seg–sex noite","Sábado de manhã":"Sáb manhã","Sábado à tarde ou noite":"Sáb tarde/noite","Domingo de manhã":"Dom manhã","Domingo à tarde ou noite":"Dom tarde/noite"};
 var ARENAS_REGIAO = ["Arena BT by Betina Travi","X7 Padel","Reis D'arena","Toca do Lobo Arena","Arena 421","Arena HCL","Arena Araranguá","Núcleo Sport Club Serramar","Arena 165","Araras Sport","Art Soccer Campo Society","Grêmio Fronteira Clube","Boleiros Beer","AABB Araranguá"];
+var CIDADES = ["Araranguá","Criciúma","Içara","Sombrio","Balneário Arroio do Silva","Balneário Gaivota","Maracajá","Turvo","Tubarão","Florianópolis","São José","Palhoça"];
+var PRECO_PREMIUM = ""; /* preço de lançamento a testar, ex.: definido pelo time; vazio = não mostra */
 var PSEUDO = ["Lucas","Marina","Rafa","Bia","Gui","Duda","Léo","Carol","Thiago","Júlia","Nina","Bruno","Lara","Davi","Malu","Teo"];
 var DIAS = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
 var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -230,7 +236,8 @@ var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 /* ---------- Estado ---------- */
 var S = {
   estado: "carregando", db: null, conta: null, usuario: null, authPronto: false, verificandoAdmin: false, admin: false,
-  jogos: [], confs: [], jogadores: [], convites: [], configs: [], criandoCodigo: false,
+  jogos: [], confs: [], jogadores: [], convites: [], configs: [], perfis: [], interesses: [], criandoCodigo: false,
+  perfil: null, perfilCarregado: false, querPremium: false, subsMeus: [], depoisDoPerfil: "",
   carregado: {}, confirmado: {}, lento: false, erroCarga: null, subsAdm: [], timerLento: null,
   palco: lsGet("palco") === "1"
 };
@@ -255,6 +262,7 @@ function normalizarZap(s){ var d = digitos(s); if (d.length === 10 || d.length =
 function waLink(num, txt){ return "https://wa.me/" + digitos(num) + "?text=" + encodeURIComponent(txt); }
 function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function plural(n, um, varios){ return n === 1 ? um : varios; }
+function chave(s){ return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/\s+/g, " "); }
 function lerValor(s){
   var v = String(s || "").trim().replace(/[R$\s]/g, "");
   if (v === "") return null;
@@ -342,8 +350,22 @@ function metricas(){
 }
 
 /* ---------- Nomes (modo apresentação troca os nomes da base) ---------- */
+function todosJogadores(){
+  var doApp = S.perfis.filter(function(p){ return p.aceitaConvites !== false && p.whatsapp; }).map(function(p){
+    return { id: "app-" + p.id, uid: p.id, nome: p.nome || "", whatsapp: p.whatsapp, esportes: p.esportes || [], nivel: p.nivel, horarios: p.horarios || [], cidade: p.cidade || "", cidadeChave: p.cidadeChave || "", origem: "app" };
+  });
+  return S.jogadores.concat(doApp);
+}
+function baseMatch(g){
+  var cg = g.cidadeChave || chave(g.cidade);
+  return todosJogadores().filter(function(j){
+    if (j.uid && j.uid === g.donoUid) return false;
+    if (cg && j.cidadeChave && j.cidadeChave !== cg) return false;
+    return true;
+  });
+}
 function pseudo(id){
-  var ids = S.jogadores.map(function(j){ return j.id; }).sort();
+  var ids = todosJogadores().map(function(j){ return j.id; }).sort();
   var i = ids.indexOf(id);
   if (i < 0){ i = 0; String(id).split("").forEach(function(ch){ i = (i * 31 + ch.charCodeAt(0)) >>> 0; }); }
   return PSEUDO[i % PSEUDO.length];
@@ -453,18 +475,20 @@ function rota(){
   var h = (location.hash || "").replace(/^#/, "");
   if (h.indexOf("convite-") === 0) return { nome: "convite", id: h.slice(8) };
   if (h.indexOf("jogo-") === 0) return { nome: "jogo", id: h.slice(5) };
-  if (h === "novo" || h === "jogadores") return { nome: h };
+  if (["novo", "jogadores", "perfil", "jogos", "premium"].indexOf(h) >= 0) return { nome: h };
   return { nome: "painel" };
 }
 function montar(){
-  var r = rota(), nome = r.nome;
+  var r = rota(), nome = r.nome, publica = ["convite", "jogos", "premium"].indexOf(nome) >= 0;
   if (S.estado !== "pronto") nome = S.estado;
-  else if (nome !== "convite"){
+  else if (!publica){
     if (!S.authPronto || S.verificandoAdmin) nome = "carregando";
     else if (!S.usuario){
       if (nome === "jogo"){ location.replace("#convite-" + r.id); return; }
       nome = "inicio";
-    } else if (!S.admin && (nome === "painel" || nome === "jogadores")) nome = "meus";
+    } else if (!S.perfilCarregado) nome = "carregando";
+    else if (!S.admin && !S.perfil && nome !== "perfil"){ S.depoisDoPerfil = location.hash || "#painel"; nome = "perfil"; }
+    else if (!S.admin && (nome === "painel" || nome === "jogadores")) nome = "meus";
   }
   V = { nome: nome, id: r.id, rota: r.nome };
   document.body.setAttribute("data-view", nome);
@@ -476,16 +500,17 @@ function montar(){
 function atualizar(){ if (V && V.update) V.update(); avisos(); }
 function nav(){
   var el = $("#nav");
-  if (S.estado !== "pronto" || V.nome === "convite" || !S.usuario){ el.innerHTML = ""; return; }
-  if (!S.admin){
-    el.innerHTML = '<a href="#painel"' + (V.nome === "meus" || V.nome === "jogo" ? ' aria-current="page"' : "") + ">Meus jogos</a>" +
-      '<a href="#novo"' + (V.nome === "novo" ? ' aria-current="page"' : "") + ">Marcar jogo</a>";
+  if (S.estado !== "pronto" || V.nome === "convite"){ el.innerHTML = ""; return; }
+  function link(href, txt, ativo){ return '<a href="' + href + '"' + (ativo ? ' aria-current="page"' : "") + ">" + txt + "</a>"; }
+  if (!S.usuario){
+    el.innerHTML = link("#jogos", "Jogos abertos", V.nome === "jogos") + link("#painel", "Entrar", V.nome === "inicio");
     return;
   }
-  var emJogos = ["painel", "novo", "jogo"].indexOf(V.nome) >= 0;
-  el.innerHTML =
-    '<a href="#painel"' + (emJogos ? ' aria-current="page"' : "") + ">Jogos</a>" +
-    '<a href="#jogadores"' + (V.nome === "jogadores" ? ' aria-current="page"' : "") + ">Jogadores</a>" +
+  if (!S.admin){
+    el.innerHTML = link("#jogos", "Abertos", V.nome === "jogos") + link("#painel", "Meus jogos", V.nome === "meus" || V.nome === "jogo" || V.nome === "novo") + link("#perfil", "Perfil", V.nome === "perfil" || V.nome === "premium");
+    return;
+  }
+  el.innerHTML = link("#painel", "Jogos", ["painel", "novo", "jogo"].indexOf(V.nome) >= 0) + link("#jogadores", "Jogadores", V.nome === "jogadores") +
     '<button type="button" data-acao="palco" aria-pressed="' + (S.palco ? "true" : "false") + '">' + (S.palco ? "Mostrar nomes" : "Ocultar nomes") + "</button>";
 }
 
@@ -518,10 +543,11 @@ function ligarLoginGoogle(btnId, erroId){
 }
 VIEWS.inicio = function(){
   app.innerHTML = '<div class="card stack"><span class="kicker">Jogo com vaga</span><h1>Falta gente pro seu jogo?</h1>' +
-    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você confirma em um toque, e a quadra vira reserva.</p>" +
+    "<p>Marque o jogo, diga quantos faltam e mande o link, ou deixe público no app. Quem combina com você faz check-in em um toque, e a quadra vira reserva.</p>" +
     '<button class="btn primary block big" type="button" id="fl-google">Entrar com Google para marcar</button>' +
+    '<a class="btn ghost block" href="#jogos">Ver jogos abertos</a>' +
     '<div id="fl-erro" class="banner" hidden></div>' +
-    '<p class="note">Recebeu um convite? Abra o link que veio no WhatsApp: para confirmar presença não precisa de conta.</p></div>' +
+    '<p class="note">Recebeu um convite? Abra o link que veio no WhatsApp: para fazer check-in não precisa de conta.</p></div>' +
     '<p class="note">É da equipe de uma arena? Entre com Google e use o código do time em “Meus jogos”.</p>';
   ligarLoginGoogle("fl-google", "fl-erro");
 };
@@ -529,21 +555,22 @@ VIEWS.meus = function(v){
   var u = S.usuario || {};
   app.innerHTML =
     "<h1>Meus jogos</h1>" +
-    '<a class="btn primary block big" href="#novo">Marcar jogo</a>' +
-    '<div class="list" id="m-lista"></div>' +
+    '<div class="row-btns"><a class="btn primary big" href="#novo">Marcar jogo</a><a class="btn ghost big" href="#jogos">Ver jogos abertos</a></div>' +
+    '<section><h2>Marquei</h2><div class="list" id="m-lista"></div></section>' +
+    '<section><h2>Vou jogar</h2><div class="list" id="m-vou"></div></section>' +
     '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
       '<form id="f-codigo" class="form" novalidate>' +
         '<label class="fld">Código do time<input id="fc-codigo" class="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>' +
         '<div id="fc-erro" class="banner" hidden></div>' +
         '<button class="btn primary block" type="submit" id="fc-entrar">Entrar no time</button>' +
       "</form></details>" +
-    '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
+    '<p class="note">Plano Free · <a href="#premium">Conhecer o Premium</a> · Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   $("#f-codigo").addEventListener("submit", function(ev){
     ev.preventDefault();
     var cod = $("#fc-codigo").value.toUpperCase().replace(/[^A-Z0-9]/g, ""), erroEl = $("#fc-erro"), btn = $("#fc-entrar");
     if (cod.length < 4){ erroEl.textContent = "Digite o código que o time te passou."; erroEl.hidden = false; return; }
     btn.disabled = true; erroEl.hidden = true;
-    var nome = primeiroNome(u.nome) || String(u.email || "").split("@")[0];
+    var nome = (S.perfil && S.perfil.nome) || primeiroNome(u.nome) || String(u.email || "").split("@")[0];
     gravar(function(){ return S.db.doc("admins/" + u.uid).set({ nome: nome.slice(0, 60), codigo: cod, criadoEm: Date.now() }); }, true).then(function(r){
       if (r.ok){ toast("Pronto, você está no time"); verificarAdmin(); }
       else {
@@ -557,7 +584,147 @@ VIEWS.meus = function(v){
       .sort(function(a, b){ return String(b.quando).localeCompare(String(a.quando)); });
     $("#m-lista").innerHTML = meus.length ? meus.map(cardJogo).join("")
       : '<div class="empty">' + (S.carregado.jogos ? "Você ainda não marcou nenhum jogo." : "Carregando…") + "</div>";
+    var ids = {};
+    S.confs.forEach(function(c){ if (c.uid === u.uid) ids[c.jogoId] = true; });
+    var vou = S.jogos.filter(function(g){ return ids[g.id] && g.donoUid !== u.uid; })
+      .sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
+    $("#m-vou").innerHTML = vou.length ? vou.map(cardPublico).join("") : '<div class="empty">Quando você fizer check-in em um jogo, ele aparece aqui.</div>';
     $$("[data-w]", app).forEach(function(s){ s.style.width = s.getAttribute("data-w") + "%"; });
+  };
+};
+VIEWS.perfil = function(){
+  var p = S.perfil || {}, u = S.usuario || {}, novo = !S.perfil;
+  var esportes = p.esportes || [], horarios = p.horarios || [];
+  app.innerHTML = (novo ? '<span class="kicker">Bem-vindo ao Fechou</span>' : '<a class="back" href="#painel">← Voltar</a>') +
+    "<h1>" + (novo ? "Seu perfil de jogador" : "Meu perfil") + "</h1>" +
+    (novo ? '<p class="note">Leva 1 minuto. Com ele, o app sugere jogos do seu nível, na sua cidade e no seu horário.</p>' : "") +
+    '<form id="f-perfil" class="card form" novalidate>' +
+      '<label class="fld">Nome<input id="fp-nome" autocomplete="given-name" value="' + esc(p.nome || primeiroNome(u.nome) || "") + '"></label>' +
+      '<label class="fld">Cidade<input id="fp-cidade" list="dl-cidades" autocomplete="address-level2" placeholder="Sua cidade" value="' + esc(p.cidade || "") + '"></label>' +
+      '<datalist id="dl-cidades">' + CIDADES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
+      '<fieldset><legend>Esportes que você pratica</legend><div class="chips-in">' + ESPORTES.map(function(e){ return '<label><input type="checkbox" name="pesp" value="' + esc(e) + '"' + (esportes.indexOf(e) >= 0 ? " checked" : "") + "><span>" + esc(e) + "</span></label>"; }).join("") + "</div></fieldset>" +
+      '<fieldset><legend>Seu nível no esporte principal</legend><div class="seg cinco">' + [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="pniv" value="' + n + '"' + (Number(p.nivel) === n ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
+        '</div><p class="nivel-txt" id="fp-nivel-txt">' + esc(p.nivel ? p.nivel + " · " + NIVEL_DESC[p.nivel] : "Escolha de 1 (iniciante) a 5 (competitivo).") + "</p></fieldset>" +
+      '<fieldset><legend>Quando você pode jogar</legend><div class="chips-in">' + HORARIOS.map(function(x){ return '<label><input type="checkbox" name="phor" value="' + esc(x) + '"' + (horarios.indexOf(x) >= 0 ? " checked" : "") + "><span>" + esc(HORARIO_CURTO[x]) + "</span></label>"; }).join("") + "</div></fieldset>" +
+      '<label class="fld">WhatsApp (opcional)<input id="fp-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(p.whatsapp || "") + '"></label>' +
+      '<label class="check"><input id="fp-aceita" type="checkbox"' + (p.aceitaConvites === false ? "" : " checked") + '><span>Quero ser chamado para jogos que combinam comigo</span><small>Só a equipe do Fechou vê seu número.</small></label>' +
+      '<div class="plano"><span class="chip">Plano Free</span><a href="#premium">Conhecer o Premium</a></div>' +
+      '<div id="fp-erro" class="banner" hidden></div>' +
+      '<button class="btn primary block big" type="submit" id="fp-salvar">' + (novo ? "Salvar e continuar" : "Salvar perfil") + "</button>" +
+    "</form>" +
+    (novo ? "" : '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>');
+  var f = $("#f-perfil");
+  f.addEventListener("change", function(ev){ if (ev.target.name === "pniv") setText("fp-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]); });
+  f.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var erroEl = $("#fp-erro");
+    function falha(m){ erroEl.textContent = m; erroEl.hidden = false; erroEl.scrollIntoView({ block: "center" }); }
+    var nome = $("#fp-nome").value.trim(), cidade = $("#fp-cidade").value.trim().replace(/\s+/g, " ");
+    if (nome.length < 2) return falha("Escreva seu nome.");
+    if (cidade.length < 2) return falha("Escreva sua cidade.");
+    var esp = $$('input[name="pesp"]:checked', f).map(function(i){ return i.value; });
+    if (!esp.length) return falha("Marque pelo menos um esporte.");
+    var niv = f.querySelector('input[name="pniv"]:checked');
+    if (!niv) return falha("Escolha seu nível.");
+    var hor = $$('input[name="phor"]:checked', f).map(function(i){ return i.value; });
+    if (!hor.length) return falha("Marque quando você pode jogar.");
+    var zapRaw = $("#fp-zap").value.trim(), zap = zapRaw ? normalizarZap(zapRaw) : "";
+    if (zapRaw && !zap) return falha("WhatsApp: DDD e número, como (48) 9 9999-9999.");
+    var dados = { nome: nome.slice(0, 60), esportes: esp, nivel: Number(niv.value), horarios: hor, cidade: cidade.slice(0, 60), cidadeChave: chave(cidade).slice(0, 60),
+      whatsapp: zap, aceitaConvites: !!zap && $("#fp-aceita").checked, plano: "free", criadoEm: p.criadoEm || Date.now(), atualizadoEm: Date.now() };
+    var btn = $("#fp-salvar"); btn.disabled = true; erroEl.hidden = true;
+    gravar(function(){ return S.db.doc("perfis/" + u.uid).set(dados); }).then(function(r){
+      if (!r.ok){ btn.disabled = false; return; }
+      toast("Perfil salvo");
+      var destino = novo ? (S.depoisDoPerfil && S.depoisDoPerfil !== "#perfil" ? S.depoisDoPerfil : "#painel") : "#painel";
+      S.depoisDoPerfil = "";
+      if (location.hash === destino) montar(); else location.hash = destino.replace(/^#/, "");
+    });
+  });
+};
+function lerFiltros(){ try { return JSON.parse(lsGet("filtros") || "{}") || {}; } catch(e){ return {}; } }
+function noPeriodo(g, periodo){
+  var dt = parseQuando(g.quando); if (!dt) return false;
+  var hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  var dia = new Date(dt.getTime()); dia.setHours(0, 0, 0, 0);
+  var dias = Math.round((dia - hoje) / 864e5), sem = dt.getDay();
+  if (periodo === "hoje") return dias === 0;
+  if (periodo === "amanha") return dias === 1;
+  if (periodo === "fds") return dias >= 0 && dias <= 6 && (sem === 6 || sem === 0);
+  if (periodo === "7d") return dias >= 0 && dias <= 7;
+  return true;
+}
+function cardPublico(g){
+  var e = estadoJogo(g);
+  return '<a class="game" href="#convite-' + esc(g.id) + '">' +
+    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span></div>" +
+    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + "</div>" +
+    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.donoNome ? " · por " + esc(g.donoNome) : "") + "</div></div>" +
+    '<div class="g-count">' + (e.fechado ? '<span class="chip ok">Fechou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>") + "</div></a>";
+}
+VIEWS.jogos = function(v){
+  var f = lerFiltros();
+  if (f.data == null) f.data = "7d";
+  if (f.soVaga == null) f.soVaga = true;
+  if (f.cidade == null) f.cidade = (S.perfil && S.perfil.cidadeChave) || "";
+  app.innerHTML = "<h1>Jogos abertos</h1>" +
+    '<p class="note">Jogos públicos marcados no app. Toque em um para ver os detalhes e fazer check-in.</p>' +
+    '<form id="f-filtros" class="card filtros" novalidate>' +
+      '<label class="fld">Quando<select id="ff-data"><option value="7d">Próx. 7 dias</option><option value="hoje">Hoje</option><option value="amanha">Amanhã</option><option value="fds">Este fim de semana</option><option value="todas">Qualquer data</option></select></label>' +
+      '<label class="fld">Cidade<select id="ff-cidade"></select></label>' +
+      '<label class="fld">Esporte<select id="ff-esporte"><option value="">Todos</option>' + ESPORTES.map(function(e){ return '<option value="' + esc(e) + '">' + esc(e) + "</option>"; }).join("") + "</select></label>" +
+      '<label class="fld">Nível<select id="ff-nivel"><option value="">Qualquer</option>' + [1, 2, 3, 4, 5].map(function(n){ return '<option value="' + n + '">' + n + " · " + NIVEIS[n] + "</option>"; }).join("") + "</select></label>" +
+      '<label class="check"><input id="ff-vaga" type="checkbox"><span>Só jogos com vaga</span></label>' +
+    "</form>" +
+    '<div class="sec-head"><h2>Resultados</h2><span class="muted" id="jg-qtd"></span></div>' +
+    '<div class="list" id="jg-res"></div>' +
+    '<a class="btn ghost block" href="#novo">Marcar meu jogo</a>';
+  $("#ff-data").value = f.data; $("#ff-esporte").value = f.esporte || ""; $("#ff-nivel").value = f.nivel || ""; $("#ff-vaga").checked = !!f.soVaga;
+  $("#f-filtros").addEventListener("change", function(){
+    f = { data: $("#ff-data").value, cidade: $("#ff-cidade").value, esporte: $("#ff-esporte").value, nivel: $("#ff-nivel").value, soVaga: $("#ff-vaga").checked };
+    lsSet("filtros", JSON.stringify(f)); v.update();
+  });
+  v.update = function(){
+    var publicos = S.jogos.filter(function(g){ return g.visibilidade === "publico" && !g.teste && !jaPassou(g); });
+    var cidades = {};
+    publicos.forEach(function(g){ var k = g.cidadeChave || chave(g.cidade); if (k) cidades[k] = cidades[k] || g.cidade; });
+    if (f.cidade && !cidades[f.cidade]) cidades[f.cidade] = (S.perfil && S.perfil.cidadeChave === f.cidade) ? S.perfil.cidade : f.cidade;
+    var sel = $("#ff-cidade");
+    sel.innerHTML = '<option value="">Todas</option>' + Object.keys(cidades).sort().map(function(k){ return '<option value="' + esc(k) + '">' + esc(cidades[k]) + "</option>"; }).join("");
+    sel.value = f.cidade || "";
+    var lista = publicos.filter(function(g){
+      if (f.soVaga && estadoJogo(g).fechado) return false;
+      if (!noPeriodo(g, f.data)) return false;
+      if (f.cidade && (g.cidadeChave || chave(g.cidade)) !== f.cidade) return false;
+      if (f.esporte && g.esporte !== f.esporte) return false;
+      if (f.nivel && Math.abs(Number(g.nivel) - Number(f.nivel)) > 1) return false;
+      return true;
+    }).sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
+    setText("jg-qtd", lista.length + plural(lista.length, " jogo", " jogos"));
+    $("#jg-res").innerHTML = lista.length ? lista.map(cardPublico).join("")
+      : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto com esses filtros. Que tal marcar o seu?" : "Carregando jogos…") + "</div>";
+  };
+};
+VIEWS.premium = function(v){
+  app.innerHTML = '<a class="back" href="#painel">← Voltar</a>' +
+    '<div class="card stack"><span class="kicker">Em breve</span><h1>Fechou Premium</h1>' +
+    "<p>Hoje o Fechou é grátis para todo mundo (plano Free). O Premium vai ter:</p>" +
+    '<ul class="beneficios"><li><b>Prioridade:</b> fazer check-in nos jogos públicos 15 minutos antes de quem é Free.</li>' +
+    "<li><b>Pontos x1,2:</b> seus jogos valem 20% a mais no ranking de jogadores.</li></ul>" +
+    (PRECO_PREMIUM ? "<p>Preço de lançamento: <b>" + esc(PRECO_PREMIUM) + "</b></p>" : "") +
+    '<div id="pr-acao" class="stack"></div></div>';
+  v.update = function(){
+    var el = $("#pr-acao"), modo = !S.usuario ? "entrar" : S.querPremium ? "dentro" : "pedir";
+    if (el.getAttribute("data-modo") === modo) return;
+    el.setAttribute("data-modo", modo);
+    if (modo === "entrar"){
+      el.innerHTML = '<button class="btn primary block big" type="button" id="pr-google">Entrar com Google para entrar na lista</button><div id="pr-erro" class="banner" hidden></div>';
+      ligarLoginGoogle("pr-google", "pr-erro");
+    } else if (modo === "dentro"){
+      el.innerHTML = '<div class="status ok">Você está na lista do Premium</div><p class="note">Avisamos quando abrir. Ninguém é cobrado agora.</p>';
+    } else {
+      el.innerHTML = '<button class="btn primary block big" type="button" data-acao="quero-premium">Quero o Premium</button><p class="note">Entra na lista de espera. Ninguém é cobrado agora.</p>';
+    }
   };
 };
 
@@ -566,8 +733,9 @@ function cardJogo(g){
   var e = estadoJogo(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
   var pill = e.fechado ? '<span class="chip ok">Fechou</span>' : (jaPassou(g) ? '<span class="chip">Passou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>");
   return '<a class="game" href="#jogo-' + esc(g.id) + '">' +
-    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
-    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + "</div>" +
+    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" +
+      (g.visibilidade === "publico" ? ' <span class="chip">público</span>' : ' <span class="chip">privado</span>') + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
+    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + "</div>" +
     '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.origem === "jogador" && g.donoNome ? " · por " + esc(g.donoNome) : "") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
     '<div class="g-count"><span class="num">' + e.preench + "/" + e.vagas + "</span>" + pill + "</div>" +
     '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></a>';
@@ -580,13 +748,14 @@ VIEWS.painel = function(v){
       '<div class="tile"><span class="lbl">Vagas preenchidas</span><span class="num" id="t-vagas">—</span><span class="sub" id="t-vagas-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogadores na base</span><span class="num" id="t-base">—</span><span class="sub" id="t-base-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogos abertos</span><span class="num" id="t-abertos">—</span><span class="sub">reais, esperando gente</span></div>' +
+      '<div class="tile"><span class="lbl">Pediram o Premium</span><span class="num" id="t-premium">—</span><span class="sub">lista de espera</span></div>' +
     "</section>" +
     '<a class="btn primary block big" href="#novo">Marcar jogo</a>' +
     '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
     '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
     '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
     '<section class="card stack" id="p-time"></section>' +
-    '<p class="note">Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
+    '<p class="note"><a href="#perfil">Meu perfil</a> · <a href="#jogos">Jogos abertos</a> · Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   v.update = function(){
     var m = metricas();
     setText("t-reais", brl(m.reais));
@@ -595,9 +764,10 @@ VIEWS.painel = function(v){
     setText("t-fech-sub", m.fechados ? m.vagos + " em horário vago, " + m.salvos + plural(m.salvos, " salvo", " salvos") + " de cancelar" : "");
     setText("t-vagas", m.preench + "/" + m.vagasTot);
     setText("t-vagas-sub", m.vagasTot ? Math.round(100 * m.preench / m.vagasTot) + "% das vagas abertas" : "");
-    setText("t-base", S.jogadores.length);
+    setText("t-base", todosJogadores().length);
     var doForm = S.jogadores.filter(function(j){ return j.origem === "tally"; }).length;
-    setText("t-base-sub", doForm + plural(doForm, " veio", " vieram") + " do formulário");
+    setText("t-base-sub", doForm + " do formulário · " + S.perfis.length + plural(S.perfis.length, " perfil", " perfis") + " no app");
+    setText("t-premium", S.interesses.length);
     var ord = S.jogos.slice().sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
     var abertos = ord.filter(function(g){ return !estadoJogo(g).fechado; });
     var fechados = ord.filter(function(g){ return estadoJogo(g).fechado; }).reverse();
@@ -619,27 +789,33 @@ VIEWS.painel = function(v){
 
 /* Abrir jogo */
 VIEWS.novo = function(v){
-  var equipe = S.admin, u = S.usuario || {};
+  var equipe = S.admin, u = S.usuario || {}, pf = S.perfil || {};
   var arenas = ARENAS_REGIAO.slice();
   S.jogos.forEach(function(g){ if (g.arena && arenas.indexOf(g.arena) < 0) arenas.push(g.arena); });
   app.innerHTML =
     '<a class="back" href="#painel">← ' + (equipe ? "Painel" : "Meus jogos") + "</a>" +
     "<h1>Marcar jogo</h1>" +
     '<form id="f-novo" class="card form" novalidate>' +
+      '<fieldset class="seg"><legend>Quem pode ver</legend>' +
+        '<label><input type="radio" name="visib" value="publico" checked><span>Público no app<small>Aparece em Jogos abertos para qualquer um entrar.</small></span></label>' +
+        '<label><input type="radio" name="visib" value="privado"><span>Privado<small>Só quem tiver o link, para mandar nos seus grupos.</small></span></label>' +
+      "</fieldset>" +
       '<label class="fld">Esporte<select id="f-esporte">' + ESPORTES.map(function(e){ return "<option>" + esc(e) + "</option>"; }).join("") + "</select></label>" +
       '<fieldset><legend>Nível do jogo</legend><div class="seg cinco">' +
-        [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === 3 ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
-      '</div><p class="nivel-txt" id="f-nivel-txt">' + esc("3 · " + NIVEL_DESC[3]) + "</p></fieldset>" +
+        [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === (Number(pf.nivel) || 3) ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
+      '</div><p class="nivel-txt" id="f-nivel-txt">' + esc((Number(pf.nivel) || 3) + " · " + NIVEL_DESC[Number(pf.nivel) || 3]) + "</p></fieldset>" +
       '<label class="fld">Dia e hora<input id="f-quando" type="datetime-local" step="1800" value="' + proximaHora() + '"></label>' +
       '<label class="fld">Onde (arena)<input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
       '<datalist id="dl-arenas">' + arenas.map(function(a){ return '<option value="' + esc(a) + '">'; }).join("") + "</datalist>" +
+      '<label class="fld">Cidade<input id="f-cidade" list="dl-cidades" autocomplete="off" placeholder="Cidade do jogo" value="' + esc(lsGet("cidade") || pf.cidade || "") + '"></label>' +
+      '<datalist id="dl-cidades">' + CIDADES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
       '<div class="two">' +
         '<label class="fld">Jogadores no total<input id="f-total" type="number" inputmode="numeric" min="2" max="30" value="4"></label>' +
         '<label class="fld">' + (equipe ? "Já são quantos?" : "Já são quantos, contando você?") + '<input id="f-ja" type="number" inputmode="numeric" min="0" max="29" value="' + (equipe ? 0 : 1) + '"></label>' +
       "</div>" +
       '<p class="nivel-txt" id="f-faltam" aria-live="polite"></p>' +
       '<label class="fld">Preço da quadra (R$)' + (equipe ? "" : ", se souber") + '<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
-      '<label class="fld">Seu WhatsApp, para quem confirmar falar com você<input id="f-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(lsGet("zap") || "") + '"></label>' +
+      '<label class="fld">Seu WhatsApp, para quem confirmar falar com você<input id="f-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(lsGet("zap") || pf.whatsapp || "") + '"></label>' +
       '<p class="note">Quem tiver o link do jogo vê esse número. Deixe em branco se preferir combinar pelo grupo.</p>' +
       (equipe ? '<label class="check"><input id="f-teste" type="checkbox"><span>Jogo de teste</span><small>Fica fora dos números do painel. Use na demonstração.</small></label>' : "") +
       '<div id="f-erro" class="banner" hidden></div>' +
@@ -647,6 +823,7 @@ VIEWS.novo = function(v){
     "</form>";
 
   var f = $("#f-novo"), esp = $("#f-esporte"), tot = $("#f-total"), ja = $("#f-ja");
+  if (pf.esportes && pf.esportes.length && ESPORTES.indexOf(pf.esportes[0]) >= 0){ esp.value = pf.esportes[0]; tot.value = TOTAL_PADRAO[esp.value] || 4; }
   function faltam(){ return (parseInt(tot.value, 10) || 0) - (parseInt(ja.value, 10) || 0); }
   function mostrarFaltam(){
     var n = faltam();
@@ -668,6 +845,8 @@ VIEWS.novo = function(v){
     if (dt.getTime() < Date.now() - 30 * 60e3) return falha("Esse horário já passou. Escolha um dia e hora que ainda vão acontecer.");
     var arena = $("#f-arena").value.trim();
     if (arena.length < 2) return falha("Escreva onde vai ser o jogo.");
+    var cidade = $("#f-cidade").value.trim().replace(/\s+/g, " ");
+    if (cidade.length < 2) return falha("Escreva a cidade do jogo.");
     var total = parseInt(tot.value, 10), jaN = parseInt(ja.value, 10);
     if (!(total >= 2 && total <= 30)) return falha("Jogadores no total: de 2 a 30.");
     if (!(jaN >= 0 && jaN < total)) return falha("Já são quantos: precisa sobrar pelo menos 1 vaga.");
@@ -681,12 +860,14 @@ VIEWS.novo = function(v){
       total: total, vagas: total - jaN, valor: valor, situacao: jaN >= 2 ? "cancelar" : "vago",
       teste: equipe ? $("#f-teste").checked : false, criadoEm: Date.now(),
       donoUid: u.uid, donoNome: (primeiroNome(u.nome) || String(u.email || "").split("@")[0]).slice(0, 60),
-      donoZap: zap, origem: equipe ? "equipe" : "jogador"
+      donoZap: zap, origem: equipe ? "equipe" : "jogador",
+      visibilidade: (f.querySelector('input[name="visib"]:checked') || {}).value === "privado" ? "privado" : "publico",
+      cidade: cidade.slice(0, 60), cidadeChave: chave(cidade).slice(0, 60)
     };
     var id = novoId(), btn = $("#f-enviar");
     btn.disabled = true; erroEl.hidden = true;
     gravar(function(){ return S.db.doc("jogos/" + id).set(dados); }).then(function(r){
-      if (r.ok){ lsSet("arena", arena); if (zap) lsSet("zap", zapRaw); location.hash = "jogo-" + id; }
+      if (r.ok){ lsSet("arena", arena); lsSet("cidade", cidade); if (zap) lsSet("zap", zapRaw); location.hash = "jogo-" + id; }
       else btn.disabled = false;
     });
   });
@@ -741,7 +922,7 @@ function rowMatch(g, x, ctx){
 function pintarJogo(v, g){
   var e = estadoJogo(g);
   $("#j-head-main").innerHTML =
-    '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
+    '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.visibilidade === "publico" ? '<span class="chip">público no app</span>' : '<span class="chip">privado</span>') + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
     "<h1>" + esc(g.esporte) + "</h1>" +
     '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div>" +
     (v.equipe && g.origem === "jogador" && g.donoNome
@@ -765,7 +946,7 @@ function pintarJogo(v, g){
   confs.forEach(function(c){ if (c.jogadorId) ctx.confPorJogador[c.jogadorId] = c; });
   S.convites.forEach(function(c){ if (c.jogoId === g.id) ctx.conv[c.jogadorId] = c; });
   if (v.equipe){
-    var rows = S.jogadores.map(function(j){ return { j: j, av: avaliar(j, g) }; }).filter(function(x){ return x.av; })
+    var rows = baseMatch(g).map(function(j){ return { j: j, av: avaliar(j, g) }; }).filter(function(x){ return x.av; })
       .sort(function(a, b){ return (b.av.score - a.av.score) || (a.av.dist - b.av.dist) || nomeJ(a.j).localeCompare(nomeJ(b.j)); });
     var full = rows.filter(function(x){ return x.av.score === 2; }).length;
     setText("j-nmatch", rows.length ? full + plural(full, " combina", " combinam") + (rows.length > full ? ", " + (rows.length - full) + " quase" : "") : "");
@@ -817,15 +998,17 @@ VIEWS.jogo = function(v){
 function pintarAcao(v, g, modo){
   var el = $("#cv-acao");
   if (modo === "form"){
-    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc(lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
-      '<button class="btn primary block big" type="submit" id="fc-btn">Tô dentro</button>' +
+    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc((S.perfil && S.perfil.nome) || lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
+      '<button class="btn primary block big" type="submit" id="fc-btn">Tô dentro (check-in)</button>' +
       '<p class="note">Sem cadastro: é só o seu nome.</p></form>';
     $("#f-conf").addEventListener("submit", function(ev){
       ev.preventDefault();
       var nome = $("#fc-nome").value.trim();
       if (nome.length < 2){ toast("Escreva seu nome para confirmar."); $("#fc-nome").focus(); return; }
-      var cid = novoId(), btn = $("#fc-btn"); btn.disabled = true;
-      gravar(function(){ return S.db.doc("confirmacoes/" + cid).set({ jogoId: g.id, nome: nome, via: "link", criadoEm: Date.now() }); }, true).then(function(r){
+      var logado = !!S.usuario, cid = logado ? g.id + "_" + S.usuario.uid : novoId(), btn = $("#fc-btn"); btn.disabled = true;
+      var dadosConf = { jogoId: g.id, nome: nome, via: "link", criadoEm: Date.now() };
+      if (logado) dadosConf.uid = S.usuario.uid;
+      gravar(function(){ return S.db.doc("confirmacoes/" + cid).set(dadosConf); }, true).then(function(r){
         if (r.ok){ lsSet("conf:" + g.id, cid); lsSet("nome", nome); }
         else if (codigo({ code: r.code }) === "permission-denied" || codigo({ code: r.code }) === "invalid-argument"){ v.semPermissao = true; }
         else { toast(msgErro({ code: r.code })); btn.disabled = false; }
@@ -864,7 +1047,7 @@ VIEWS.convite = function(v){
     }
     if (!v.montado){
       corpo.innerHTML = '<section class="card invite" id="cv-head"></section><section class="card score-card" id="cv-score" aria-live="polite"></section><section class="card" id="cv-acao"></section>' +
-        '<p class="note">Falta gente pro seu jogo também? <a href="#novo">Marque o seu aqui</a>.</p>';
+        '<p class="note"><a href="#jogos">Ver outros jogos abertos</a> · <a href="#novo">Marcar o meu jogo</a></p>';
       v.montado = true; v.modo = null;
     }
     var e = estadoJogo(g), pp = porPessoa(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
@@ -889,7 +1072,8 @@ VIEWS.convite = function(v){
     if (v.fechadoAntes === false && e.fechado){ festa(); sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
     v.fechadoAntes = e.fechado; v.pctAntes = pct;
     var minha = lsGet("conf:" + g.id);
-    var dentro = !!minha && S.confs.some(function(c){ return c.id === minha; });
+    var dentro = (!!minha && S.confs.some(function(c){ return c.id === minha; })) ||
+      (!!S.usuario && S.confs.some(function(c){ return c.jogoId === g.id && c.uid === S.usuario.uid; }));
     var modo = v.semPermissao ? "semPermissao" : dentro ? "dentro" : e.fechado ? "fechado" : jaPassou(g) ? "passou" : "form";
     if (modo !== v.modo){ v.modo = modo; pintarAcao(v, g, modo); }
   };
@@ -899,10 +1083,10 @@ VIEWS.convite = function(v){
 function rowJogador(j){
   var nome = nomeJ(j);
   return '<div class="prow"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
-    '<div><div class="pname">' + esc(nome) + ' <span class="chip">' + esc(NIVEIS[j.nivel] || "Nível ?") + '</span><span class="chip">' + (j.origem === "tally" ? "formulário" : "manual") + "</span></div>" +
-    '<div class="psub">' + esc((j.esportes || []).join(", ")) + "</div>" +
+    '<div><div class="pname">' + esc(nome) + ' <span class="chip">' + esc(NIVEIS[j.nivel] || "Nível ?") + '</span><span class="chip">' + (j.origem === "tally" ? "formulário" : j.origem === "app" ? "app" : "manual") + "</span></div>" +
+    '<div class="psub">' + esc((j.esportes || []).join(", ")) + (j.cidade ? " · " + esc(j.cidade) : "") + "</div>" +
     '<div class="psub">' + esc((j.horarios || []).map(function(h){ return HORARIO_CURTO[h] || h; }).join(" · ")) + "</div></div>" +
-    '<div class="pact"><button class="btn ghost sm danger" type="button" data-acao="remover-jogador" data-id="' + esc(j.id) + '">Remover</button></div></div>';
+    '<div class="pact">' + (j.origem === "app" ? "" : '<button class="btn ghost sm danger" type="button" data-acao="remover-jogador" data-id="' + esc(j.id) + '">Remover</button>') + "</div></div>";
 }
 function limparJogador(x){
   if (!x || typeof x !== "object") return null;
@@ -980,7 +1164,7 @@ VIEWS.jogadores = function(v){
       .then(function(r){ if (r.ok){ f.reset(); setText("fj-nivel-txt", "Escolha de 1 (iniciante) a 5 (competitivo)."); $("#jg-add").open = false; toast("Jogador salvo"); } });
   });
   v.update = function(){
-    var lista = S.jogadores.slice().sort(function(a, b){ return nomeJ(a).localeCompare(nomeJ(b)); });
+    var lista = todosJogadores().sort(function(a, b){ return nomeJ(a).localeCompare(nomeJ(b)); });
     setText("jg-n", lista.length + plural(lista.length, " pessoa", " pessoas"));
     $("#jg-lista").innerHTML = lista.length ? lista.map(rowJogador).join("") : '<div class="empty">' + (S.carregado.jogadores ? "Ninguém na base ainda." : "Carregando jogadores…") + "</div>";
   };
@@ -1006,7 +1190,7 @@ document.addEventListener("click", function(ev){
     gravar(function(){ return S.db.doc("convites/" + jg + "_" + jd).set({ jogoId: jg, jogadorId: jd, em: Date.now() }); }, true);
   } else if (a === "confirmou"){
     var jogo = t.getAttribute("data-jogo"), jid = t.getAttribute("data-jogador");
-    var j = S.jogadores.filter(function(x){ return x.id === jid; })[0];
+    var j = todosJogadores().filter(function(x){ return x.id === jid; })[0];
     if (!j) return;
     t.disabled = true;
     gravar(function(){ return S.db.doc("confirmacoes/" + jogo + "_" + jid).set({ jogoId: jogo, jogadorId: jid, nome: primeiroNome(j.nome), via: "whatsapp", criadoEm: Date.now() }); })
@@ -1018,6 +1202,11 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "quero-premium"){
+    if (!S.usuario) return;
+    t.disabled = true;
+    gravar(function(){ return S.db.doc("interesse_premium/" + S.usuario.uid).set({ plano: "premium", criadoEm: Date.now() }); })
+      .then(function(r){ if (r.ok) toast("Você está na lista do Premium"); else t.disabled = false; });
   } else if (a === "copiar-acesso"){
     if (codigoEquipe()) copiar(conviteTime(codigoEquipe()), "Convite do time copiado");
   } else if (a === "trocar-codigo"){
@@ -1112,9 +1301,28 @@ function assinarPublico(){
 }
 function desassinarAdmin(){
   S.subsAdm.forEach(function(u){ try { u(); } catch(e){} });
-  S.subsAdm = []; S.jogadores = []; S.convites = []; S.configs = []; S.carregado.jogadores = false; S.carregado.convites = false; S.carregado.config = false;
+  S.subsAdm = []; S.jogadores = []; S.convites = []; S.configs = []; S.perfis = []; S.interesses = []; S.carregado.jogadores = false; S.carregado.convites = false; S.carregado.config = false;
 }
-function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false), sub("config", "configs", false)]; }
+function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false), sub("config", "configs", false), sub("perfis", "perfis", false), sub("interesse_premium", "interesses", false)]; }
+function desassinarMeus(){
+  S.subsMeus.forEach(function(u){ try { u(); } catch(e){} });
+  S.subsMeus = []; S.perfil = null; S.perfilCarregado = false; S.querPremium = false;
+}
+function assinarMeus(){
+  desassinarMeus();
+  if (!S.usuario) return;
+  var uid = S.usuario.uid;
+  S.subsMeus.push(S.db.doc("perfis/" + uid).onSnapshot(function(s){
+    var primeira = !S.perfilCarregado;
+    S.perfil = s.exists ? Object.assign({}, s.data()) : null;
+    S.perfilCarregado = true;
+    if (primeira) montar(); else atualizar();
+  }, function(err){
+    if (window.console) console.warn("perfil", err);
+    S.perfil = null; S.perfilCarregado = true; montar();
+  }));
+  S.subsMeus.push(S.db.doc("interesse_premium/" + uid).onSnapshot(function(s){ S.querPremium = !!s.exists; atualizar(); }, function(){}));
+}
 function verificarAdmin(){
   if (!S.usuario) return;
   var uid = S.usuario.uid;
@@ -1139,7 +1347,8 @@ function iniciar(){
     S.conta.aoMudar(function(u){
       S.authPronto = true;
       S.usuario = u ? { uid: u.uid, email: u.email || "", nome: u.displayName || "" } : null;
-      if (!S.usuario){ S.admin = false; S.verificandoAdmin = false; desassinarAdmin(); montar(); return; }
+      if (!S.usuario){ S.admin = false; S.verificandoAdmin = false; desassinarAdmin(); desassinarMeus(); montar(); return; }
+      assinarMeus();
       verificarAdmin();
     });
     montar();

@@ -49,12 +49,15 @@ O arquivo de jogadores tem nome e WhatsApp de pessoas reais: **nunca suba esse a
 
 ## Como usar
 
+Os requisitos completos, com o que ficou para o roadmap e por quê, estão em [`REQUISITOS.md`](REQUISITOS.md).
+
 **Quem quer jogar (sozinho ou com um grupo incompleto)**
 
-1. Abre o app e toca em **Entrar com Google para marcar**.
-2. **Marcar jogo**: esporte, nível, dia e hora, arena, quantos são no total e quantos já são. O app diz quantos faltam.
+1. Abre o app e toca em **Entrar com Google para marcar**. No primeiro acesso, preenche o perfil: cidade, esportes, nível, quando pode jogar e WhatsApp (opcional).
+2. **Marcar jogo**: esporte, nível, dia e hora, arena, cidade, quantos são no total e quantos já são. Escolhe se o jogo é **público no app** ou **privado** (só com o link).
 3. Manda o link nos grupos. Quem responder no WhatsApp, adiciona em **Confirmados**.
-4. Quem confirma pelo link vê o WhatsApp de quem marcou (se informado) para combinar.
+4. Quem faz check-in pelo link vê o WhatsApp de quem marcou (se informado) para combinar.
+5. Em **Jogos abertos**, qualquer pessoa filtra os jogos públicos por data, cidade, esporte e nível.
 
 **Time (arena ou concierge)**
 

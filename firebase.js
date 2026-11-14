@@ -19,7 +19,7 @@ if (!cfg.apiKey || cfg.apiKey === "COLE_AQUI" || !cfg.projectId) {
     const fs = getFirestore(app);
     const auth = getAuth(app);
 
-    // Mesma interface que o app usa: collection(c).onSnapshot e doc(caminho).set/update/delete
+    // Mesma interface que o app usa: collection(c).onSnapshot e doc(caminho).set/update/delete/onSnapshot
     const db = {
       collection(caminho) {
         return {
@@ -31,7 +31,10 @@ if (!cfg.apiKey || cfg.apiKey === "COLE_AQUI" || !cfg.projectId) {
         return {
           set(dados) { return setDoc(ref, dados); },
           update(dados) { return updateDoc(ref, dados); },
-          delete() { return deleteDoc(ref); }
+          delete() { return deleteDoc(ref); },
+          onSnapshot(next, erro) {
+            return onSnapshot(ref, (s) => next({ exists: s.exists(), data: () => s.data() }), erro);
+          }
         };
       }
     };

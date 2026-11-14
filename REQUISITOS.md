@@ -1,0 +1,61 @@
+# Requisitos do Fechou (MVP do Startup Weekend)
+
+Hipótese que o MVP testa: **gente sem parceiro vira reserva num horário que a arena não vende.**
+Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap, com o motivo.
+
+## Agora no MVP
+
+### R1. Perfil de jogador
+
+- Entrar com Google. No primeiro acesso, a pessoa preenche nome, cidade, esportes que pratica, nível no esporte principal (1 a 5), quando pode jogar (7 faixas) e WhatsApp (opcional).
+- "Quero ser chamado para jogos que combinam comigo" só vale com WhatsApp, e só o time vê o número.
+- Editável em **Perfil**, onde aparece o plano atual (Free).
+- **Aceite:** sem perfil a pessoa não marca jogo; outro jogador não consegue ler o perfil de ninguém (regra do banco).
+
+### R2. Marcar jogo (evento)
+
+- Campos: esporte, nível, dia e hora, arena, cidade, jogadores no total e quantos já são, preço da quadra (opcional) e WhatsApp de quem organiza (opcional).
+- "Quantos já são" cobre os dois casos: **1** é quem está sozinho procurando gente; **2 ou mais** é grupo incompleto. O app mostra quantos faltam.
+- Visibilidade: **Público no app** (aparece em Jogos abertos) ou **Privado** (só quem tem o link, para os grupos da pessoa).
+- O formulário já vem com o esporte, o nível, a cidade e o WhatsApp do perfil.
+- **Aceite:** não aceita horário que já passou nem jogo sem vaga; o link sai pronto para o WhatsApp.
+
+### R3. Compartilhar e fazer check-in
+
+- Cada jogo tem um link. Quem abre vê esporte, nível, dia, local, quem organiza, quantas vagas faltam e o primeiro nome de quem já confirmou.
+- Check-in (**Tô dentro**) sem conta, só com o nome. Logado, o nome vem do perfil e o jogo aparece em **Vou jogar**.
+- Depois do check-in, um botão abre o WhatsApp de quem organizou, se informado.
+- Quem marcou vê os confirmados ao vivo, adiciona quem respondeu no WhatsApp e pode apagar o jogo. Quando completa: **Fechou! Reserva gerada**.
+
+### R4. Jogos abertos com filtros
+
+- Lista de jogos públicos e futuros. Jogos de teste não aparecem.
+- Filtros: quando (hoje, amanhã, fim de semana, próximos 7 dias, qualquer data), cidade, esporte, nível (até 1 de diferença) e só com vaga. A cidade do perfil vem marcada.
+- Abre sem login, para quem recebeu um convite conhecer outros jogos.
+
+### R5. Time da arena (concierge)
+
+- Entra com o código do time. Vê todos os jogos, públicos e privados, com quem marcou.
+- **Quem combina** junta a base do formulário e os perfis do app que aceitaram convite, por esporte, nível, horário e cidade. O convite sai pronto no WhatsApp.
+- Painel: reservas geradas (R$), jogos que fecharam, vagas preenchidas, jogadores na base, jogos abertos e lista de espera do Premium. Jogo de teste fica fora dos números.
+
+### R6. Premium como lista de espera
+
+- Página **Fechou Premium (em breve)** com os benefícios planejados e o botão **Quero o Premium**. Ninguém é cobrado.
+- O painel do time mostra quantos pediram: é a evidência de interesse em pagar.
+
+## Requisitos não funcionais
+
+- Celular primeiro: abre em qualquer navegador, sem instalar nada.
+- Privacidade: telefones da base e dos perfis só para o time. O WhatsApp de quem organiza aparece para quem tem o link do jogo, com aviso no formulário.
+- Dados ao vivo: placar e listas atualizam sozinhos.
+- Números honestos: só dados reais; jogo de teste fica fora da conta.
+
+## Roadmap: fora do MVP, e por quê
+
+| Item | Por que espera |
+|---|---|
+| Prioridade de 15 minutos para Premium | Com poucos usuários, segurar o jogo 15 minutos atrasa o preenchimento, justamente a dor que o Fechou resolve. Ligar quando houver volume de jogos por cidade. |
+| Pontuação 1,2x para Premium | Depende de um sistema de pontos e ranking que ainda não existe. |
+| Cobrança do Premium e pagamento da quadra | Primeiro validar interesse (lista de espera) e preço. |
+| Chat, avaliação depois do jogo, perfil de professor, notificação, app nativo | Não ajudam a provar a hipótese neste fim de semana. |
