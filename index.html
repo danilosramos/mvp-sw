@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fechou</title>
+<meta name="description" content="Jogos com vaga: a arena abre um horário, quem combina recebe o convite no WhatsApp e confirma em um toque.">
+<meta property="og:title" content="Fechou: jogo com vaga">
+<meta property="og:description" content="Toque para ver o jogo e confirmar sua vaga.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<script>window.backendPronto = new Promise(function(r){ window.__resolverBackend = r; });</script>
+<script src="config.js"></script>
+<script type="module" src="firebase.js"></script>
+<style>
+:root{
+  /* Layout: uma coluna de 560px com barra fixa no topo; placar em fonte condensada; cor por papel (ação, ok, atenção, WhatsApp). */
+  --bg:#EDF1F0;
+  --surface:#FFFFFF;
+  --ink:#0F2229;
+  --muted:#56676D;
+  --line:#D3DCDA;
+  --accent:#1B47C9;
+  --accent-ink:#FFFFFF;
+  --sand:#EADBB8;
+  --ok:#126B3B; --ok-bg:#D9F1E2;
+  --warn:#8A5300; --warn-bg:#FBEBCB;
+  --zap:#0F7A43; --zap-ink:#FFFFFF;
+  --danger:#B42318;
+  --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1418; --surface:#11212A; --ink:#E4EDEF; --muted:#97AAB0; --line:#24383F;
+    --accent:#8AA9FF; --accent-ink:#0A1418; --sand:#3D3523;
+    --ok:#6AD69A; --ok-bg:#123422; --warn:#F3B65E; --warn-bg:#3A2A0F;
+    --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1418; --surface:#11212A; --ink:#E4EDEF; --muted:#97AAB0; --line:#24383F;
+  --accent:#8AA9FF; --accent-ink:#0A1418; --sand:#3D3523;
+  --ok:#6AD69A; --ok-bg:#123422; --warn:#F3B65E; --warn-bg:#3A2A0F;
+  --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+p{margin:0}
+h1,h2{font-family:var(--font-display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0}
+h1{font-size:34px;line-height:1.02}
+h2{font-size:23px;line-height:1.1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:.02em;color:var(--ink);text-decoration:none;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.brand small{font-family:var(--font-body);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+nav{display:flex;gap:2px;flex-wrap:nowrap;justify-content:flex-end}
+nav a,nav button{font:600 14px var(--font-body);color:var(--muted);text-decoration:none;padding:8px 9px;border-radius:10px;border:0;background:none;cursor:pointer;min-height:38px;white-space:nowrap}
+@media (max-width:440px){.brand small{display:none}.top{padding:8px 10px}nav a,nav button{padding:8px 6px;font-size:13.5px}}
+nav a[aria-current="page"]{color:var(--ink);background:var(--bg)}
+nav button[aria-pressed="true"]{color:var(--accent)}
+.aviso{max-width:560px;margin:0 auto;padding:0 16px}
+.aviso:not(:empty){padding-top:12px}
+
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 56px;display:grid;gap:18px}
+.stack{display:grid;gap:18px}
+section{display:grid;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.muted{color:var(--muted)}
+.note{color:var(--muted);font-size:14px}
+.back{font-weight:600;text-decoration:none;font-size:15px;justify-self:start}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.kicker{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent)}
+.banner{padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:14px}
+.empty{padding:16px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center;font-size:15px}
+
+/* Números do painel */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;align-content:start}
+.tile.big{grid-column:1/-1;background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tile .lbl{font-size:13px;font-weight:700;color:var(--muted)}
+.tile.big .lbl,.tile.big .sub{color:inherit;opacity:.78}
+.num{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.tile .num{font-size:36px}
+.tile.big .num{font-size:56px}
+.tile .sub{font-size:13px;color:var(--muted)}
+
+/* Botões e marcas */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px var(--font-body);text-decoration:none;cursor:pointer;text-align:center}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.zap{background:var(--zap);color:var(--zap-ink);border-color:var(--zap)}
+.btn.block{width:100%}
+.btn.big{min-height:58px;font-size:20px}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:14px;border-radius:10px}
+.btn.danger{color:var(--danger)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.link{border:0;background:none;padding:0 2px;font:600 15px var(--font-body);color:var(--accent);text-decoration:underline;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.chip.test{background:transparent;border-style:dashed}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Jogos */
+.list{display:grid;gap:8px}
+.game{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:inherit}
+.game:hover{border-color:var(--accent)}
+.g-title{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.g-sub{font-size:14px;color:var(--muted)}
+.g-count{display:grid;justify-items:end;gap:4px}
+.g-count .num{font-size:28px}
+.game .bar{grid-column:1/-1}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>span{display:block;width:0;height:100%;background:var(--warn);border-radius:99px;transition:width .5s ease}
+.bar.full>span{background:var(--ok)}
+
+/* Placar */
+.score-card{display:grid;gap:8px;text-align:center}
+.score{font-family:var(--font-display);font-weight:700;font-size:88px;line-height:.9;font-variant-numeric:tabular-nums}
+.score small{font-size:44px;color:var(--muted)}
+.score-lbl{font-weight:600;color:var(--muted)}
+.score-card .bar{height:12px}
+.status{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.1}
+.status.ok{color:var(--ok)}
+.status.warn{color:var(--warn)}
+.score-card.fechou{border-color:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
+.pop{animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* Pessoas */
+.prow{display:grid;grid-template-columns:40px 1fr;gap:10px 12px;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.prow.in{border-color:var(--ok)}
+.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--sand);color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:17px}
+.pname{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.psub{font-size:14px;color:var(--muted)}
+.pact{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.pact:empty{display:none}
+@media (min-width:500px){.prow{grid-template-columns:40px 1fr auto}.pact{grid-column:auto;justify-content:flex-end}}
+
+/* Formulários */
+.form{display:grid;gap:16px}
+.fld{display:grid;gap:6px;font-weight:600;font-size:14px}
+input,select,textarea{font:500 16px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-height:46px}
+textarea{min-height:120px;resize:vertical}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg legend{grid-column:1/-1;float:left;width:100%}
+.seg label{position:relative;cursor:pointer;display:block}
+.seg input,.chips-in input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;pointer-events:none}
+.seg span{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:700;background:var(--surface);height:100%}
+.seg small{font-weight:500;color:var(--muted);font-size:13px;line-height:1.3}
+.seg input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.seg input:focus-visible+span,.chips-in input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.seg.cinco{grid-template-columns:repeat(5,1fr)}
+.seg.cinco span{text-align:center;font-family:var(--font-display);font-size:24px;padding:6px 0}
+.nivel-txt{font-size:14px;color:var(--muted);margin-top:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:start;font-weight:600;font-size:15px;cursor:pointer}
+.check input{width:22px;height:22px;min-height:0;margin:1px 0 0;padding:0}
+.check small{grid-column:2;font-weight:500;color:var(--muted);font-size:13px;line-height:1.35}
+.chips-in{display:flex;flex-wrap:wrap;gap:6px}
+.chips-in label{position:relative}
+.chips-in span{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--line);font-size:14px;font-weight:600;cursor:pointer;background:var(--surface)}
+.chips-in input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inline input{flex:1 1 180px;width:auto}
+details>summary{cursor:pointer;font-weight:700;font-size:16px;list-style-position:inside}
+details[open]>summary{margin-bottom:14px}
+
+/* Convite */
+.invite{display:grid;gap:8px}
+.meta{display:grid;gap:3px;font-size:17px}
+.msg{white-space:pre-wrap;font:500 15px/1.45 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:0;overflow-wrap:anywhere}
+
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:12px;font-weight:600;font-size:15px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#toast.on{opacity:1}
+.copia{position:fixed;inset:0;background:rgba(5,12,15,.5);display:grid;place-items:center;padding:16px;z-index:25}
+.copia[hidden]{display:none}
+.copia .card{width:min(520px,100%);display:grid;gap:12px}
+#confete{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (prefers-reduced-motion: reduce){.pop{animation:none}.bar>span,#toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#painel">Fechou <small>jogos com vaga</small></a>
+  <nav id="nav" aria-label="Seções"></nav>
+</header>
+<div id="aviso" class="aviso"></div>
+<main id="app" class="wrap"><div class="empty">Carregando…</div></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="copia" class="copia" hidden role="dialog" aria-modal="true" aria-labelledby="copia-t">
+  <div class="card">
+    <h2 id="copia-t">Copie o texto</h2>
+    <p class="note">Não consegui copiar sozinho. Segure no texto, copie e cole no WhatsApp.</p>
+    <textarea id="copia-txt" readonly></textarea>
+    <button class="btn primary block" type="button" data-acao="fechar-copia">Fechar</button>
+  </div>
+</div>
+<canvas id="confete" aria-hidden="true"></canvas>
+<script>
+(function(){
+"use strict";
+
+/* ---------- Configuração ---------- */
+var APP = "Fechou";
+var TALLY_URL = "https://tally.so/r/Ar2MZ0";
+var ESPORTES = ["Vôlei de praia","Futevôlei","Beach tennis","Padel","Tênis","Futebol society ou futsal"];
+var TOTAL_PADRAO = {"Vôlei de praia":4,"Futevôlei":4,"Beach tennis":4,"Padel":4,"Tênis":2,"Futebol society ou futsal":10};
+var NIVEIS = ["","Iniciante","Básico","Intermediário","Avançado","Competitivo"];
+var NIVEL_DESC = ["","Iniciante: começou agora","Básico: joga por diversão","Intermediário: joga toda semana","Avançado: joga torneio local","Competitivo ou professor"];
+var HORARIOS = ["Manhã em dia útil","Tarde em dia útil","Noite em dia útil","Sábado de manhã","Sábado à tarde ou noite","Domingo de manhã","Domingo à tarde ou noite"];
+var HORARIO_CURTO = {"Manhã em dia útil":"Seg–sex manhã","Tarde em dia útil":"Seg–sex tarde","Noite em dia útil":"Seg–sex noite","Sábado de manhã":"Sáb manhã","Sábado à tarde ou noite":"Sáb tarde/noite","Domingo de manhã":"Dom manhã","Domingo à tarde ou noite":"Dom tarde/noite"};
+var PSEUDO = ["Lucas","Marina","Rafa","Bia","Gui","Duda","Léo","Carol","Thiago","Júlia","Nina","Bruno","Lara","Davi","Malu","Teo"];
+var DIAS = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+/* ---------- Estado ---------- */
+var S = {
+  estado: "carregando", db: null, conta: null, usuario: null, authPronto: false, verificandoAdmin: false, admin: false,
+  jogos: [], confs: [], jogadores: [], convites: [],
+  carregado: {}, confirmado: {}, lento: false, erroCarga: null, subsAdm: [], timerLento: null,
+  palco: lsGet("palco") === "1"
+};
+var V = { nome: "carregando" };
+var app = document.getElementById("app");
+
+/* ---------- Utilidades ---------- */
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function lsGet(k){ try { return window.localStorage.getItem("fechou:" + k); } catch(e){ return null; } }
+function lsSet(k, v){ try { if (v == null) window.localStorage.removeItem("fechou:" + k); else window.localStorage.setItem("fechou:" + k, String(v)); } catch(e){} }
+function novoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function cap(s){ s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); }
+function setText(id, t){ var el = document.getElementById(id); if (el) el.textContent = t; }
+function brl(v){ var n = Number(v) || 0; return new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", minimumFractionDigits:(n % 1) ? 2 : 0, maximumFractionDigits:2}).format(n); }
+function hhmm(ms){ if (!ms) return ""; var d = new Date(ms); return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0"); }
+function iniciais(n){ var p = String(n || "?").trim().split(/\s+/).filter(Boolean); return (((p[0] || "?")[0]) + (p[1] ? p[1][0] : "")).toUpperCase(); }
+function primeiroNome(n){ return String(n || "").trim().split(/\s+/)[0] || ""; }
+function digitos(s){ return String(s || "").replace(/\D/g, ""); }
+function normalizarZap(s){ var d = digitos(s); if (d.length === 10 || d.length === 11) d = "55" + d; return (d.length >= 12 && d.length <= 13) ? d : ""; }
+function waLink(num, txt){ return "https://wa.me/" + digitos(num) + "?text=" + encodeURIComponent(txt); }
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function plural(n, um, varios){ return n === 1 ? um : varios; }
+function lerValor(s){
+  var v = String(s || "").trim().replace(/[R$\s]/g, "");
+  if (v === "") return null;
+  if (v.indexOf(",") >= 0) v = v.replace(/\./g, "").replace(",", ".");
+  var n = Number(v);
+  return (isFinite(n) && n >= 0) ? Math.round(n * 100) / 100 : undefined;
+}
+
+/* ---------- Datas ---------- */
+function parseQuando(q){
+  var partes = String(q || "").split("T");
+  if (partes.length !== 2) return null;
+  var d = partes[0].split("-").map(Number), t = partes[1].split(":").map(Number);
+  if (d.length < 3 || isNaN(d[0]) || isNaN(t[0])) return null;
+  return new Date(d[0], d[1] - 1, d[2], t[0], t[1] || 0);
+}
+function isoLocal(d){ function p(n){ return String(n).padStart(2, "0"); } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes()); }
+function proximaHora(){ var d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1); return isoLocal(d); }
+function hora(dt){ var m = dt.getMinutes(); return dt.getHours() + "h" + (m ? String(m).padStart(2, "0") : ""); }
+function ddmm(dt){ return String(dt.getDate()).padStart(2, "0") + "/" + String(dt.getMonth() + 1).padStart(2, "0"); }
+function mesmoDia(a, b){ return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function quandoCurto(q){ var dt = parseQuando(q); return dt ? DIAS_CURTO[dt.getDay()] + ", " + ddmm(dt) + " · " + hora(dt) : "Sem data"; }
+function quandoTexto(q){
+  var dt = parseQuando(q); if (!dt) return "";
+  var hoje = new Date(), amanha = new Date(); amanha.setDate(hoje.getDate() + 1);
+  var dia = mesmoDia(dt, hoje) ? "hoje (" + ddmm(dt) + ")" : mesmoDia(dt, amanha) ? "amanhã (" + ddmm(dt) + ")" : DIAS[dt.getDay()] + ", " + ddmm(dt) + ",";
+  return dia + " às " + hora(dt);
+}
+/* Faixas do formulário que batem com o horário do jogo. Das 17h às 19h conta como tarde e como noite. */
+function faixas(q){
+  var dt = parseQuando(q); if (!dt) return [];
+  var d = dt.getDay(), h = dt.getHours();
+  if (d === 6) return [h < 12 ? "Sábado de manhã" : "Sábado à tarde ou noite"];
+  if (d === 0) return [h < 12 ? "Domingo de manhã" : "Domingo à tarde ou noite"];
+  if (h < 12) return ["Manhã em dia útil"];
+  if (h < 17) return ["Tarde em dia útil"];
+  if (h < 19) return ["Tarde em dia útil", "Noite em dia útil"];
+  return ["Noite em dia útil"];
+}
+
+/* ---------- Regras do jogo ---------- */
+function confsDo(gid){ return S.confs.filter(function(c){ return c.jogoId === gid; }).sort(function(a, b){ return (a.criadoEm || 0) - (b.criadoEm || 0); }); }
+function estadoJogo(g){
+  var n = confsDo(g.id).length, vagas = Math.max(0, Number(g.vagas) || 0);
+  return { n: n, vagas: vagas, faltam: Math.max(0, vagas - n), fechado: vagas > 0 && n >= vagas, preench: Math.min(n, vagas) };
+}
+function jaPassou(g){ var dt = parseQuando(g.quando); return dt ? dt.getTime() < Date.now() - 2 * 3600e3 : false; }
+function porPessoa(g){ var v = Number(g.valor), t = Number(g.total); return (v > 0 && t > 0) ? v / t : null; }
+function linkConvite(g){ return location.origin + location.pathname + "#convite-" + g.id; }
+function esporteMsg(e){ return e === "Futebol society ou futsal" ? "futebol society/futsal" : String(e || "").toLowerCase(); }
+
+/* Regra de quem combina: mesmo esporte; nível até 1 de diferença; horário que a pessoa marcou. */
+function avaliar(j, g){
+  if (!Array.isArray(j.esportes) || j.esportes.indexOf(g.esporte) < 0) return null;
+  var dn = (Number(j.nivel) || 0) - (Number(g.nivel) || 0);
+  var nivelOk = Math.abs(dn) <= 1;
+  var fx = faixas(g.quando);
+  var horaOk = Array.isArray(j.horarios) && j.horarios.some(function(h){ return fx.indexOf(h) >= 0; });
+  if (!nivelOk && !horaOk) return null;
+  var motivo = (nivelOk && horaOk) ? "Combina" : (!nivelOk ? (dn > 0 ? "Nível acima" : "Nível abaixo") : "Outro horário");
+  return { nivelOk: nivelOk, horaOk: horaOk, score: (nivelOk ? 1 : 0) + (horaOk ? 1 : 0), motivo: motivo, dist: Math.abs(dn) };
+}
+
+function metricas(){
+  var m = { reais: 0, semPreco: 0, fechados: 0, vagos: 0, salvos: 0, preench: 0, vagasTot: 0, jogosReais: 0 };
+  S.jogos.forEach(function(g){
+    if (g.teste) return;
+    m.jogosReais++;
+    var e = estadoJogo(g);
+    m.vagasTot += e.vagas; m.preench += e.preench;
+    if (e.fechado){
+      m.fechados++;
+      if (g.situacao === "cancelar") m.salvos++; else m.vagos++;
+      if (Number(g.valor) > 0) m.reais += Number(g.valor); else m.semPreco++;
+    }
+  });
+  return m;
+}
+
+/* ---------- Nomes (modo apresentação troca os nomes da base) ---------- */
+function pseudo(id){
+  var ids = S.jogadores.map(function(j){ return j.id; }).sort();
+  var i = ids.indexOf(id);
+  if (i < 0){ i = 0; String(id).split("").forEach(function(ch){ i = (i * 31 + ch.charCodeAt(0)) >>> 0; }); }
+  return PSEUDO[i % PSEUDO.length];
+}
+function nomeJ(j){ return S.palco ? pseudo(j.id) : (j.nome || "Sem nome"); }
+function nomeConf(c){ return (S.palco && c.jogadorId) ? pseudo(c.jogadorId) : (c.nome || "Sem nome"); }
+
+/* ---------- Mensagens de WhatsApp ---------- */
+function msgConvite(g, j, av, comLink){
+  var e = estadoJogo(g), pp = porPessoa(g), nome = primeiroNome(j.nome);
+  var porque = (av.nivelOk && av.horaOk) ? "é do seu nível e no horário que você marcou" : (av.horaOk ? "é no horário que você marcou" : "é do seu nível");
+  return [
+    "Oi" + (nome ? ", " + nome : "") + "! Tem jogo de " + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ") " + quandoTexto(g.quando) + " na " + g.arena + ".",
+    plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + " pra fechar, e te chamei porque " + porque + "." + (pp ? " Fica " + brl(pp) + " por pessoa." : ""),
+    comLink ? "Topa? Confirma aqui: " + linkConvite(g) + "\nOu só responde \"tô dentro\"." : "Topa? Responde \"tô dentro\" que eu te coloco no jogo.",
+    "Se não der, tudo bem!"
+  ].join("\n");
+}
+function msgGrupo(g, comLink){
+  var e = estadoJogo(g), pp = porPessoa(g);
+  return [
+    "Jogo com vaga: " + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ")",
+    cap(quandoTexto(g.quando)) + " na " + g.arena + ".",
+    plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + " pra fechar." + (pp ? " " + brl(pp) + " por pessoa." : ""),
+    comLink ? "Quem topa confirma aqui: " + linkConvite(g) : "Quem topa, responde aqui ou me chama no privado."
+  ].join("\n");
+}
+
+/* ---------- Gravação ---------- */
+function codigo(e){ return String((e && e.code) || "").replace(/_/g, "-"); }
+function msgErro(e){
+  var c = codigo(e);
+  if (c === "permission-denied") return "Sem permissão para isso. Entre com a conta da equipe.";
+  if (c === "unauthenticated") return "Sua sessão expirou. Entre de novo.";
+  if (c === "invalid-argument") return "Algum dado está inválido. Confira e tente de novo.";
+  if (c === "resource-exhausted" || c === "quota-exceeded") return "O banco atingiu o limite. Espere um pouco e tente de novo.";
+  if (c === "not-found") return "Esse item não existe mais.";
+  return "Não consegui salvar. Confira a internet e tente de novo.";
+}
+function gravar(fn, silencioso){
+  var tentativa = 0;
+  function rodar(){
+    return Promise.resolve().then(fn).then(function(){ return { ok: true }; }, function(e){
+      if (codigo(e) === "unavailable" && tentativa === 0){
+        tentativa++;
+        return new Promise(function(r){ setTimeout(r, 400 + Math.random() * 600); }).then(rodar);
+      }
+      if (window.console) console.warn(e);
+      if (!silencioso) toast(msgErro(e));
+      return { ok: false, code: e && e.code };
+    });
+  }
+  return rodar();
+}
+
+/* ---------- Interface: avisos, cópia, festa ---------- */
+var toastT = null;
+function toast(m){ var el = $("#toast"); el.textContent = m; el.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove("on"); }, 2800); }
+function copiar(txt, ok){
+  var feito = false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast(ok || "Copiado"); }, function(){ mostrarCopia(txt); });
+      feito = true;
+    }
+  } catch(e){}
+  if (!feito) mostrarCopia(txt);
+}
+function mostrarCopia(txt){ var d = $("#copia"); $("#copia-txt").value = txt; d.hidden = false; $("#copia-txt").focus(); $("#copia-txt").select(); }
+function barra(span, de, para){
+  if (!span) return;
+  span.style.width = Math.max(0, Math.min(100, de)) + "%";
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ span.style.width = Math.max(0, Math.min(100, para)) + "%"; }); });
+}
+function festa(){
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var cv = $("#confete"), ctx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  var W = window.innerWidth, H = window.innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var cores = [cssVar("--accent"), cssVar("--ok"), cssVar("--warn"), cssVar("--zap"), cssVar("--sand")];
+  var ps = [];
+  for (var i = 0; i < 140; i++){
+    ps.push({ x: W / 2 + (Math.random() - 0.5) * 80, y: H * 0.38, vx: (Math.random() - 0.5) * 14, vy: -6 - Math.random() * 12, s: 5 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35, c: cores[i % cores.length] });
+  }
+  var t0 = performance.now();
+  function quadro(t){
+    ctx.clearRect(0, 0, W, H);
+    ps.forEach(function(p){
+      p.vy += 0.38; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.66); ctx.restore();
+    });
+    if (t - t0 < 2200) requestAnimationFrame(quadro); else ctx.clearRect(0, 0, W, H);
+  }
+  requestAnimationFrame(quadro);
+}
+function avisos(){
+  var m = "";
+  if (S.estado === "pronto"){
+    if (S.erroCarga) m = "A conexão com os dados caiu. Recarregue a página.";
+    else if (S.lento) m = "Os dados estão demorando para chegar. Confira a internet: o que aparece pode estar desatualizado.";
+  }
+  $("#aviso").innerHTML = m ? '<div class="banner">' + esc(m) + "</div>" : "";
+}
+
+/* ---------- Rotas ---------- */
+function rota(){
+  var h = (location.hash || "").replace(/^#/, "");
+  if (h.indexOf("convite-") === 0) return { nome: "convite", id: h.slice(8) };
+  if (h.indexOf("jogo-") === 0) return { nome: "jogo", id: h.slice(5) };
+  if (h === "novo" || h === "jogadores") return { nome: h };
+  return { nome: "painel" };
+}
+function montar(){
+  var r = rota(), nome = r.nome;
+  if (S.estado !== "pronto") nome = S.estado;
+  else if (nome !== "convite"){
+    if (!S.authPronto || S.verificandoAdmin) nome = "carregando";
+    else if (!S.usuario) nome = "entrar";
+    else if (!S.admin) nome = "semAcesso";
+  }
+  V = { nome: nome, id: r.id, rota: r.nome };
+  document.body.setAttribute("data-view", nome);
+  (VIEWS[nome] || VIEWS.painel)(V);
+  nav(); avisos();
+  if (V.update) V.update();
+  window.scrollTo(0, 0);
+}
+function atualizar(){ if (V && V.update) V.update(); avisos(); }
+function nav(){
+  var el = $("#nav");
+  if (S.estado !== "pronto" || !S.admin || V.nome === "convite"){ el.innerHTML = ""; return; }
+  var emJogos = ["painel", "novo", "jogo"].indexOf(V.nome) >= 0;
+  el.innerHTML =
+    '<a href="#painel"' + (emJogos ? ' aria-current="page"' : "") + ">Jogos</a>" +
+    '<a href="#jogadores"' + (V.nome === "jogadores" ? ' aria-current="page"' : "") + ">Jogadores</a>" +
+    '<button type="button" data-acao="palco" aria-pressed="' + (S.palco ? "true" : "false") + '">' + (S.palco ? "Mostrar nomes" : "Ocultar nomes") + "</button>";
+}
+
+/* ---------- Telas ---------- */
+var VIEWS = {};
+
+VIEWS.carregando = function(){ app.innerHTML = '<div class="empty">Carregando…</div>'; };
+VIEWS.semConfig = function(){
+  app.innerHTML = '<div class="card stack"><h1>Falta ligar o banco</h1><p>Preencha o arquivo <b>config.js</b> com a configuração do Firebase. O passo a passo está no README do repositório.</p></div>';
+};
+VIEWS.semBanco = function(){
+  app.innerHTML = '<div class="card stack"><h1>Sem conexão com o banco</h1><p>Não consegui carregar o Firebase. Confira a internet e recarregue a página.</p></div>';
+};
+function msgLogin(e){
+  var c = String((e && e.code) || "");
+  if (/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(c)) return "E-mail ou senha errados.";
+  if (/too-many-requests/.test(c)) return "Muitas tentativas. Espere alguns minutos.";
+  if (/network/.test(c)) return "Sem internet. Tente de novo.";
+  if (/operation-not-allowed/.test(c)) return "O login por e-mail e senha está desligado no Firebase (Authentication).";
+  return "Não consegui entrar (" + (c || "erro desconhecido") + ").";
+}
+VIEWS.entrar = function(){
+  app.innerHTML = '<div class="card stack"><span class="kicker">Equipe da arena</span><h1>Entrar no painel</h1>' +
+    '<p class="note">Jogador não precisa de conta: o link do convite abre direto.</p>' +
+    '<form id="f-login" class="form" novalidate>' +
+      '<label class="fld">E-mail<input id="fl-email" type="email" autocomplete="username" inputmode="email"></label>' +
+      '<label class="fld">Senha<input id="fl-senha" type="password" autocomplete="current-password"></label>' +
+      '<div id="fl-erro" class="banner" hidden></div>' +
+      '<button class="btn primary block big" type="submit" id="fl-btn">Entrar</button>' +
+    "</form></div>";
+  $("#f-login").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var email = $("#fl-email").value.trim(), senha = $("#fl-senha").value, erroEl = $("#fl-erro"), btn = $("#fl-btn");
+    if (!email || !senha){ erroEl.textContent = "Preencha e-mail e senha."; erroEl.hidden = false; return; }
+    btn.disabled = true; erroEl.hidden = true;
+    S.conta.entrar(email, senha).catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
+  });
+};
+VIEWS.semAcesso = function(){
+  var u = S.usuario || {};
+  app.innerHTML = '<div class="card stack"><h1>Falta liberar sua conta</h1>' +
+    "<p>Você entrou como <b>" + esc(u.email || "") + "</b>, mas essa conta ainda não está na equipe.</p>" +
+    "<p>No Firebase, abra <b>Firestore Database</b>, crie a coleção <b>admins</b> e um documento com este ID (com um campo qualquer, como nome):</p>" +
+    '<pre class="msg">' + esc(u.uid || "") + "</pre>" +
+    '<div class="row-btns"><button class="btn primary" type="button" data-acao="copiar-uid">Copiar ID</button>' +
+    '<button class="btn ghost" type="button" data-acao="reverificar">Já criei</button>' +
+    '<button class="btn ghost" type="button" data-acao="sair-conta">Sair</button></div></div>';
+};
+
+/* Painel */
+function cardJogo(g){
+  var e = estadoJogo(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
+  var pill = e.fechado ? '<span class="chip ok">Fechou</span>' : (jaPassou(g) ? '<span class="chip">Passou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>");
+  return '<a class="game" href="#jogo-' + esc(g.id) + '">' +
+    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
+    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + "</div>" +
+    '<div class="g-sub">' + (g.situacao === "cancelar" ? "Grupo incompleto" : "Horário vago") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
+    '<div class="g-count"><span class="num">' + e.preench + "/" + e.vagas + "</span>" + pill + "</div>" +
+    '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></a>';
+}
+VIEWS.painel = function(v){
+  app.innerHTML =
+    '<section class="tiles" aria-label="Resultados dos jogos reais">' +
+      '<div class="tile big"><span class="lbl">Reservas geradas</span><span class="num" id="t-reais">—</span><span class="sub" id="t-reais-sub"></span></div>' +
+      '<div class="tile"><span class="lbl">Jogos que fecharam</span><span class="num" id="t-fech">—</span><span class="sub" id="t-fech-sub"></span></div>' +
+      '<div class="tile"><span class="lbl">Vagas preenchidas</span><span class="num" id="t-vagas">—</span><span class="sub" id="t-vagas-sub"></span></div>' +
+      '<div class="tile"><span class="lbl">Jogadores na base</span><span class="num" id="t-base">—</span><span class="sub" id="t-base-sub"></span></div>' +
+      '<div class="tile"><span class="lbl">Jogos abertos</span><span class="num" id="t-abertos">—</span><span class="sub">reais, esperando gente</span></div>' +
+    "</section>" +
+    '<a class="btn primary block big" href="#novo">Abrir jogo com vagas</a>' +
+    '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
+    '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
+    '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
+    '<p class="note">Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
+  v.update = function(){
+    var m = metricas();
+    setText("t-reais", brl(m.reais));
+    setText("t-reais-sub", m.fechados ? (m.semPreco ? m.semPreco + plural(m.semPreco, " jogo fechado está", " jogos fechados estão") + " sem preço informado" : "em jogos que não iam acontecer") : "Ainda nenhum jogo real fechou.");
+    setText("t-fech", m.fechados);
+    setText("t-fech-sub", m.fechados ? m.vagos + " em horário vago, " + m.salvos + plural(m.salvos, " salvo", " salvos") + " de cancelar" : "");
+    setText("t-vagas", m.preench + "/" + m.vagasTot);
+    setText("t-vagas-sub", m.vagasTot ? Math.round(100 * m.preench / m.vagasTot) + "% das vagas abertas" : "");
+    setText("t-base", S.jogadores.length);
+    var doForm = S.jogadores.filter(function(j){ return j.origem === "tally"; }).length;
+    setText("t-base-sub", doForm + plural(doForm, " veio", " vieram") + " do formulário");
+    var ord = S.jogos.slice().sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
+    var abertos = ord.filter(function(g){ return !estadoJogo(g).fechado; });
+    var fechados = ord.filter(function(g){ return estadoJogo(g).fechado; }).reverse();
+    setText("t-abertos", abertos.filter(function(g){ return !g.teste && !jaPassou(g); }).length);
+    $("#l-abertos").innerHTML = abertos.length ? abertos.map(cardJogo).join("") : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto. Toque em “Abrir jogo com vagas”." : "Carregando jogos…") + "</div>";
+    $("#l-fechados").innerHTML = fechados.length ? fechados.map(cardJogo).join("") : '<div class="empty">Quando um jogo completar, ele aparece aqui.</div>';
+    $$("[data-w]", app).forEach(function(s){ s.style.width = s.getAttribute("data-w") + "%"; });
+  };
+};
+
+/* Abrir jogo */
+VIEWS.novo = function(v){
+  var arenas = [];
+  S.jogos.forEach(function(g){ if (g.arena && arenas.indexOf(g.arena) < 0) arenas.push(g.arena); });
+  app.innerHTML =
+    '<a class="back" href="#painel">← Painel</a>' +
+    "<h1>Abrir jogo com vagas</h1>" +
+    '<form id="f-novo" class="card form" novalidate>' +
+      '<fieldset class="seg"><legend>O que está acontecendo?</legend>' +
+        '<label><input type="radio" name="situacao" value="vago" checked><span>Horário vago<small>Ninguém reservou. Formar um jogo do zero.</small></span></label>' +
+        '<label><input type="radio" name="situacao" value="cancelar"><span>Grupo incompleto<small>Alguém furou. Completar o grupo.</small></span></label>' +
+      "</fieldset>" +
+      '<label class="fld">Arena<input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
+      '<datalist id="dl-arenas">' + arenas.map(function(a){ return '<option value="' + esc(a) + '">'; }).join("") + "</datalist>" +
+      '<label class="fld">Esporte<select id="f-esporte">' + ESPORTES.map(function(e){ return "<option>" + esc(e) + "</option>"; }).join("") + "</select></label>" +
+      '<fieldset><legend>Nível do jogo</legend><div class="seg cinco">' +
+        [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === 3 ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
+      '</div><p class="nivel-txt" id="f-nivel-txt">' + esc("3 · " + NIVEL_DESC[3]) + "</p></fieldset>" +
+      '<label class="fld">Dia e hora<input id="f-quando" type="datetime-local" step="1800" value="' + proximaHora() + '"></label>' +
+      '<div class="two">' +
+        '<label class="fld">Jogadores no jogo<input id="f-total" type="number" inputmode="numeric" min="2" max="30" value="4"></label>' +
+        '<label class="fld">Vagas abertas<input id="f-vagas" type="number" inputmode="numeric" min="1" max="30" value="4"></label>' +
+      "</div>" +
+      '<label class="fld">Preço da quadra nesse horário (R$)<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
+      '<label class="check"><input id="f-teste" type="checkbox"><span>Jogo de teste</span><small>Fica fora dos números do painel. Use na demonstração.</small></label>' +
+      '<div id="f-erro" class="banner" hidden></div>' +
+      '<button class="btn primary block big" type="submit" id="f-enviar">Abrir jogo e ver quem combina</button>' +
+    "</form>";
+
+  var f = $("#f-novo"), esp = $("#f-esporte"), tot = $("#f-total"), vag = $("#f-vagas");
+  function sit(){ var r = f.querySelector('input[name="situacao"]:checked'); return r ? r.value : "vago"; }
+  function ajustarVagas(){ var t = parseInt(tot.value, 10) || 0; vag.value = sit() === "cancelar" ? 1 : t; }
+  esp.addEventListener("change", function(){ tot.value = TOTAL_PADRAO[esp.value] || 4; ajustarVagas(); });
+  tot.addEventListener("input", function(){ if (sit() === "vago") vag.value = tot.value; });
+  f.addEventListener("change", function(ev){
+    if (ev.target.name === "situacao") ajustarVagas();
+    if (ev.target.name === "nivel") setText("f-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]);
+  });
+  f.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var erroEl = $("#f-erro");
+    function falha(m){ erroEl.textContent = m; erroEl.hidden = false; erroEl.scrollIntoView({ block: "center" }); }
+    var arena = $("#f-arena").value.trim();
+    if (!arena) return falha("Escreva o nome da arena.");
+    var quando = $("#f-quando").value;
+    if (!parseQuando(quando)) return falha("Escolha o dia e a hora do jogo.");
+    var total = parseInt(tot.value, 10);
+    if (!(total >= 2 && total <= 30)) return falha("Jogadores no jogo: de 2 a 30.");
+    var vagas = parseInt(vag.value, 10);
+    if (!(vagas >= 1 && vagas <= total)) return falha("Vagas abertas: de 1 até o número de jogadores do jogo.");
+    var valor = lerValor($("#f-valor").value);
+    if (valor === undefined) return falha("Preço: use só números, como 90 ou 90,50.");
+    var nivelEl = f.querySelector('input[name="nivel"]:checked');
+    var dados = { arena: arena, esporte: esp.value, nivel: Number(nivelEl ? nivelEl.value : 3), quando: quando, total: total, vagas: vagas, valor: valor, situacao: sit(), teste: $("#f-teste").checked, criadoEm: Date.now() };
+    var id = novoId(), btn = $("#f-enviar");
+    btn.disabled = true; erroEl.hidden = true;
+    gravar(function(){ return S.db.doc("jogos/" + id).set(dados); }).then(function(r){
+      if (r.ok){ lsSet("arena", arena); location.hash = "jogo-" + id; }
+      else btn.disabled = false;
+    });
+  });
+};
+
+/* Jogo (visão de quem organiza) */
+function esqueletoJogo(){
+  return '<section class="card invite" id="j-head"><div id="j-head-main" class="invite"></div><div id="j-preco"></div></section>' +
+    '<section class="card score-card" id="j-score" aria-live="polite"></section>' +
+    '<section><div class="sec-head"><h2>Quem combina</h2><span class="muted" id="j-nmatch"></span></div>' +
+      '<p class="note">Mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário.</p>' +
+      '<div class="list" id="j-match"></div></section>' +
+    '<section><h2>Confirmados</h2><div class="list" id="j-confs"></div>' +
+      '<form id="f-addconf" class="inline" autocomplete="off"><label class="sr" for="f-addconf-nome">Nome de quem confirmou</label>' +
+      '<input id="f-addconf-nome" placeholder="Confirmou alguém de fora da lista? Nome">' +
+      '<button class="btn ghost" type="submit">Adicionar</button></form></section>' +
+    '<section class="card"><h2>Divulgar nos grupos</h2>' +
+      '<label class="check"><input type="checkbox" id="j-comlink"><span>Incluir link de confirmação</span><small>Quem tocar no link confirma sozinho e aparece aqui na hora. Quem responder no WhatsApp, você marca em “Confirmou”.</small></label>' +
+      '<pre class="msg" id="j-msg"></pre>' +
+      '<div class="row-btns"><a class="btn zap" id="j-grupo" target="_blank" rel="noopener">Enviar no WhatsApp</a>' +
+      '<button class="btn ghost" type="button" data-acao="copiar-msg">Copiar mensagem</button>' +
+      '<button class="btn ghost" type="button" data-acao="copiar-link">Copiar link</button></div></section>' +
+    '<section class="row-btns"><button class="btn ghost sm" type="button" data-acao="teste" id="j-teste"></button>' +
+    '<button class="btn ghost sm danger" type="button" data-acao="apagar" id="j-apagar">Apagar jogo</button></section>';
+}
+function linhaPreco(g){
+  var pp = porPessoa(g);
+  return (Number(g.valor) > 0 ? "Quadra " + esc(brl(g.valor)) + (pp ? " · " + esc(brl(pp)) + " por pessoa" : "") : '<span class="muted">Sem preço informado.</span>') +
+    ' <button type="button" class="link" data-acao="preco">' + (Number(g.valor) > 0 ? "mudar" : "informar preço") + "</button>";
+}
+function rowMatch(g, x, ctx){
+  var j = x.j, av = x.av, c = ctx.confPorJogador[j.id], cv = ctx.conv[j.id], nome = nomeJ(j);
+  var chip = av.score === 2 ? '<span class="chip ok">Combina</span>' : '<span class="chip warn">' + esc(av.motivo) + "</span>";
+  var fx = faixas(g.quando);
+  var bate = (j.horarios || []).filter(function(h){ return fx.indexOf(h) >= 0; });
+  var sub = (NIVEIS[j.nivel] || "Nível ?") + " · " + (bate.length ? bate.map(function(h){ return HORARIO_CURTO[h] || h; }).join(", ") : "marcou " + (j.horarios || []).slice(0, 2).map(function(h){ return HORARIO_CURTO[h] || h; }).join(", "));
+  var estado = c ? '<span class="chip ok">No jogo</span>' : (cv ? '<span class="muted">Convidado às ' + esc(hhmm(cv.em)) + "</span>" : "");
+  var acoes = "";
+  if (c) acoes = '<button class="btn ghost sm" type="button" data-acao="tirar" data-conf="' + esc(c.id) + '">Tirar do jogo</button>';
+  else if (!ctx.e.fechado){
+    acoes = (j.whatsapp
+      ? '<a class="btn zap sm" href="' + esc(waLink(j.whatsapp, msgConvite(g, j, av, V.comLink))) + '" target="_blank" rel="noopener" data-acao="convidar" data-jogo="' + esc(g.id) + '" data-jogador="' + esc(j.id) + '">' + (cv ? "Convidar de novo" : "Convidar") + "</a>"
+      : '<span class="muted">Sem WhatsApp</span>') +
+      '<button class="btn ghost sm" type="button" data-acao="confirmou" data-jogo="' + esc(g.id) + '" data-jogador="' + esc(j.id) + '">Confirmou</button>';
+  }
+  return '<div class="prow' + (c ? " in" : "") + '"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
+    '<div><div class="pname">' + esc(nome) + " " + chip + '</div><div class="psub">' + esc(sub) + "</div>" + (estado ? '<div class="psub">' + estado + "</div>" : "") + "</div>" +
+    '<div class="pact">' + acoes + "</div></div>";
+}
+function pintarJogo(v, g){
+  var e = estadoJogo(g);
+  $("#j-head-main").innerHTML =
+    '<div class="g-title"><span class="kicker">' + (g.situacao === "cancelar" ? "Grupo incompleto" : "Horário vago") + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
+    "<h1>" + esc(g.esporte) + "</h1>" +
+    '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div></div>";
+  if (!v.editandoPreco) $("#j-preco").innerHTML = linhaPreco(g);
+
+  var sc = $("#j-score"), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
+  sc.classList.toggle("fechou", e.fechado);
+  sc.innerHTML = '<div class="score">' + e.preench + "<small>/" + e.vagas + '</small></div><div class="score-lbl">vagas preenchidas</div>' +
+    '<div class="bar' + (e.fechado ? " full" : "") + '"><span></span></div>' +
+    (e.fechado
+      ? '<div class="status ok">Fechou! Reserva gerada' + (Number(g.valor) > 0 ? ": " + esc(brl(g.valor)) : "") + "</div>"
+      : '<div class="status warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + '</div><div class="muted">Quando fechar, vira uma reserva' + (Number(g.valor) > 0 ? " de " + esc(brl(g.valor)) : "") + " que não ia acontecer.</div>") +
+    (e.n > e.vagas ? '<div class="muted">' + (e.n - e.vagas) + " na espera</div>" : "");
+  barra($("span", sc), v.pctAntes == null ? pct : v.pctAntes, pct);
+  if (v.fechadoAntes === false && e.fechado){ festa(); sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
+  v.fechadoAntes = e.fechado; v.pctAntes = pct;
+
+  var confs = confsDo(g.id), ctx = { e: e, confPorJogador: {}, conv: {} };
+  confs.forEach(function(c){ if (c.jogadorId) ctx.confPorJogador[c.jogadorId] = c; });
+  S.convites.forEach(function(c){ if (c.jogoId === g.id) ctx.conv[c.jogadorId] = c; });
+  var rows = S.jogadores.map(function(j){ return { j: j, av: avaliar(j, g) }; }).filter(function(x){ return x.av; })
+    .sort(function(a, b){ return (b.av.score - a.av.score) || (a.av.dist - b.av.dist) || nomeJ(a.j).localeCompare(nomeJ(b.j)); });
+  var full = rows.filter(function(x){ return x.av.score === 2; }).length;
+  setText("j-nmatch", rows.length ? full + plural(full, " combina", " combinam") + (rows.length > full ? ", " + (rows.length - full) + " quase" : "") : "");
+  $("#j-match").innerHTML = rows.length ? rows.map(function(x){ return rowMatch(g, x, ctx); }).join("")
+    : '<div class="empty">' + (S.carregado.jogadores ? "Ninguém da base joga " + esc(esporteMsg(g.esporte)) + " nesse nível e horário. Divulgue nos grupos abaixo." : "Carregando jogadores…") + "</div>";
+
+  $("#j-confs").innerHTML = confs.length ? confs.map(function(c, i){
+    var nome = nomeConf(c), espera = i >= e.vagas;
+    return '<div class="prow' + (espera ? "" : " in") + '"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
+      '<div><div class="pname">' + esc(nome) + (espera ? ' <span class="chip">na espera</span>' : "") + '</div><div class="psub">' + (c.via === "link" ? "Confirmou pelo link" : "Confirmou no WhatsApp") + " · " + esc(hhmm(c.criadoEm)) + "</div></div>" +
+      '<div class="pact"><button class="btn ghost sm" type="button" data-acao="tirar" data-conf="' + esc(c.id) + '">Tirar</button></div></div>';
+  }).join("") : '<div class="empty">Ninguém confirmou ainda.</div>';
+
+  var msg = msgGrupo(g, v.comLink);
+  $("#j-msg").textContent = msg;
+  $("#j-grupo").href = waLink("", msg);
+  setText("j-teste", g.teste ? "Marcar como jogo real" : "Marcar como teste");
+}
+VIEWS.jogo = function(v){
+  app.innerHTML = '<a class="back" href="#painel">← Painel</a><div id="j-corpo" class="stack"><div class="empty">Carregando o jogo…</div></div>';
+  v.update = function(){
+    var g = S.jogos.filter(function(x){ return x.id === v.id; })[0], corpo = $("#j-corpo");
+    if (!g){
+      if (S.confirmado.jogos){ corpo.innerHTML = '<div class="empty">Esse jogo não existe mais. <a href="#painel">Voltar ao painel</a></div>'; v.montado = false; }
+      else if (S.lento || S.erroCarga){ corpo.innerHTML = '<div class="empty">Não consegui carregar o jogo. Confira a internet e recarregue.</div>'; v.montado = false; }
+      return;
+    }
+    if (!v.montado){
+      corpo.innerHTML = esqueletoJogo(); v.montado = true;
+      v.comLink = true; $("#j-comlink").checked = true;
+      $("#j-comlink").addEventListener("change", function(ev){ v.comLink = ev.target.checked; v.update(); });
+      $("#f-addconf").addEventListener("submit", function(ev){
+        ev.preventDefault();
+        var inp = $("#f-addconf-nome"), nome = inp.value.trim();
+        if (nome.length < 2){ toast("Escreva o nome de quem confirmou."); return; }
+        gravar(function(){ return S.db.doc("confirmacoes/" + novoId()).set({ jogoId: v.id, nome: nome, via: "whatsapp", criadoEm: Date.now() }); })
+          .then(function(r){ if (r.ok){ inp.value = ""; toast("Confirmação adicionada"); } });
+      });
+    }
+    pintarJogo(v, g);
+  };
+};
+
+/* Convite (visão do jogador) */
+function pintarAcao(v, g, modo){
+  var el = $("#cv-acao");
+  if (modo === "form"){
+    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc(lsGet("nome") || "") + '"></label>' +
+      '<button class="btn primary block big" type="submit" id="fc-btn">Tô dentro</button>' +
+      '<p class="note">Depois de confirmar, quem organizou te chama no WhatsApp para combinar.</p></form>';
+    $("#f-conf").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var nome = $("#fc-nome").value.trim();
+      if (nome.length < 2){ toast("Escreva seu nome para confirmar."); $("#fc-nome").focus(); return; }
+      var cid = novoId(), btn = $("#fc-btn"); btn.disabled = true;
+      gravar(function(){ return S.db.doc("confirmacoes/" + cid).set({ jogoId: g.id, nome: nome, via: "link", criadoEm: Date.now() }); }, true).then(function(r){
+        if (r.ok){ lsSet("conf:" + g.id, cid); lsSet("nome", nome); }
+        else if (codigo({ code: r.code }) === "permission-denied" || codigo({ code: r.code }) === "invalid-argument"){ v.semPermissao = true; }
+        else { toast(msgErro({ code: r.code })); btn.disabled = false; }
+        v.update();
+      });
+    });
+  } else if (modo === "dentro"){
+    el.innerHTML = '<div class="stack"><div class="status ok">Você está no jogo!</div><p>Quem organizou vai te chamar no WhatsApp para combinar os detalhes. Se mudar de ideia, avise por lá.</p></div>';
+  } else if (modo === "fechado" || modo === "passou"){
+    el.innerHTML = '<div class="stack"><h2>' + (modo === "fechado" ? "Esse jogo fechou" : "Esse jogo já passou") + "</h2><p>Quer ser chamado para o próximo jogo do seu nível e horário?</p>" +
+      '<a class="btn primary block" href="' + TALLY_URL + '" target="_blank" rel="noopener">Quero ser chamado</a></div>';
+  } else {
+    el.innerHTML = '<div class="stack"><h2>Confirme pelo WhatsApp</h2><p>Por aqui não deu. Responda “tô dentro” na mensagem de quem te convidou.</p></div>';
+  }
+}
+VIEWS.convite = function(v){
+  app.innerHTML = '<div id="cv-corpo" class="stack"><div class="empty">Carregando o convite…</div></div>';
+  v.update = function(){
+    var g = S.jogos.filter(function(x){ return x.id === v.id; })[0], corpo = $("#cv-corpo");
+    if (!g){
+      if (S.lento && !S.confirmado.jogos){
+        corpo.innerHTML = '<div class="empty">Não consegui carregar o convite. Confira a internet e recarregue.</div>';
+        v.montado = false;
+      } else if (S.confirmado.jogos){
+        corpo.innerHTML = '<div class="card stack"><h1>Convite não encontrado</h1><p>Esse jogo foi apagado ou o link veio incompleto. Peça um novo convite a quem te chamou.</p>' +
+          '<a class="btn ghost" href="' + TALLY_URL + '" target="_blank" rel="noopener">Quero ser chamado para jogos</a></div>';
+        v.montado = false;
+      }
+      return;
+    }
+    if (!v.montado){
+      corpo.innerHTML = '<section class="card invite" id="cv-head"></section><section class="card score-card" id="cv-score" aria-live="polite"></section><section class="card" id="cv-acao"></section>';
+      v.montado = true; v.modo = null;
+    }
+    var e = estadoJogo(g), pp = porPessoa(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
+    $("#cv-head").innerHTML = '<span class="kicker">' + (g.situacao === "cancelar" ? "Falta gente nesse grupo" : "Jogo com vaga") + "</span><h1>" + esc(g.esporte) + "</h1>" +
+      '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div>" +
+      "<div>Nível " + esc((NIVEIS[g.nivel] || "").toLowerCase()) + " · " + esc(g.total) + " jogadores</div>" +
+      (pp ? "<div>" + esc(brl(pp)) + ' por pessoa <span class="muted">(quadra ' + esc(brl(g.valor)) + " dividida por " + esc(g.total) + ")</span></div>" : "") + "</div>";
+    var nomes = [], semNome = 0, sc = $("#cv-score");
+    confsDo(g.id).forEach(function(c){
+      var n = (S.palco && c.jogadorId) ? pseudo(c.jogadorId) : (c.nome || "");
+      if (n) nomes.push(primeiroNome(n)); else semNome++;
+    });
+    if (semNome) nomes.push("+" + semNome);
+    sc.classList.toggle("fechou", e.fechado);
+    sc.innerHTML = (e.fechado
+      ? '<div class="score">Fechou!</div><div class="score-lbl">' + e.vagas + " de " + e.vagas + " vagas preenchidas</div>"
+      : '<div class="score">' + e.faltam + '</div><div class="score-lbl">' + plural(e.faltam, "vaga para fechar", "vagas para fechar") + "</div>") +
+      '<div class="bar' + (e.fechado ? " full" : "") + '"><span></span></div>' +
+      (nomes.length ? '<div class="muted">Já confirmaram: ' + esc(nomes.join(", ")) + "</div>" : "");
+    barra($("span", sc), v.pctAntes == null ? pct : v.pctAntes, pct);
+    if (v.fechadoAntes === false && e.fechado){ festa(); sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
+    v.fechadoAntes = e.fechado; v.pctAntes = pct;
+    var minha = lsGet("conf:" + g.id);
+    var dentro = !!minha && S.confs.some(function(c){ return c.id === minha; });
+    var modo = v.semPermissao ? "semPermissao" : dentro ? "dentro" : e.fechado ? "fechado" : jaPassou(g) ? "passou" : "form";
+    if (modo !== v.modo){ v.modo = modo; pintarAcao(v, g, modo); }
+  };
+};
+
+/* Jogadores */
+function rowJogador(j){
+  var nome = nomeJ(j);
+  return '<div class="prow"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
+    '<div><div class="pname">' + esc(nome) + ' <span class="chip">' + esc(NIVEIS[j.nivel] || "Nível ?") + '</span><span class="chip">' + (j.origem === "tally" ? "formulário" : "manual") + "</span></div>" +
+    '<div class="psub">' + esc((j.esportes || []).join(", ")) + "</div>" +
+    '<div class="psub">' + esc((j.horarios || []).map(function(h){ return HORARIO_CURTO[h] || h; }).join(" · ")) + "</div></div>" +
+    '<div class="pact"><button class="btn ghost sm danger" type="button" data-acao="remover-jogador" data-id="' + esc(j.id) + '">Remover</button></div></div>';
+}
+function limparJogador(x){
+  if (!x || typeof x !== "object") return null;
+  var id = String(x.id || "");
+  if (!/^[A-Za-z0-9_-]{3,60}$/.test(id)) return null;
+  var esportes = (Array.isArray(x.esportes) ? x.esportes : []).filter(function(e){ return ESPORTES.indexOf(e) >= 0; });
+  var horarios = (Array.isArray(x.horarios) ? x.horarios : []).filter(function(h){ return HORARIOS.indexOf(h) >= 0; });
+  var nivel = Number(x.nivel);
+  if (!esportes.length || !horarios.length || !(nivel >= 1 && nivel <= 5)) return null;
+  return { id: id, dados: { nome: String(x.nome || "").slice(0, 60), whatsapp: x.whatsapp ? normalizarZap(x.whatsapp) : "", esportes: esportes, nivel: nivel, horarios: horarios, origem: x.origem === "tally" ? "tally" : "manual", respondidoEm: String(x.respondidoEm || "") } };
+}
+function importarArquivo(ev){
+  var input = ev.target, file = input.files && input.files[0];
+  if (!file) return;
+  var leitor = new FileReader();
+  leitor.onload = function(){
+    var lista;
+    try { lista = JSON.parse(String(leitor.result)); } catch(e){ setText("imp-status", "Arquivo inválido: não é um JSON."); return; }
+    if (!Array.isArray(lista)) lista = (lista && Array.isArray(lista.jogadores)) ? lista.jogadores : null;
+    if (!lista){ setText("imp-status", "Arquivo inválido: esperava uma lista de jogadores."); return; }
+    var validos = lista.map(limparJogador).filter(Boolean);
+    if (!validos.length){ setText("imp-status", "Nenhum jogador válido no arquivo."); return; }
+    setText("imp-status", "Importando " + validos.length + "…");
+    var ok = 0, cadeia = Promise.resolve();
+    validos.forEach(function(x){
+      cadeia = cadeia.then(function(){
+        return gravar(function(){ return S.db.doc("jogadores/" + x.id).set(x.dados); }, true).then(function(r){ if (r.ok) ok++; });
+      });
+    });
+    cadeia.then(function(){
+      setText("imp-status", ok + " de " + validos.length + " importados.");
+      toast(ok + plural(ok, " jogador importado", " jogadores importados"));
+      input.value = "";
+    });
+  };
+  leitor.readAsText(file);
+}
+VIEWS.jogadores = function(v){
+  app.innerHTML =
+    '<div class="sec-head"><h1>Jogadores</h1><span class="muted" id="jg-n"></span></div>' +
+    '<p class="note">Entra aqui quem respondeu o <a href="' + TALLY_URL + '" target="_blank" rel="noopener">formulário</a> e deixou o WhatsApp, ou quem você adicionar com a permissão da pessoa.</p>' +
+    '<div class="list" id="jg-lista"></div>' +
+    '<details class="card" id="jg-imp"><summary>Importar lista do formulário (.json)</summary>' +
+      '<div class="stack"><p class="note">Use o arquivo que o Claude gerou das respostas do Tally. Quem já está na base é atualizado, sem duplicar.</p>' +
+      '<input type="file" id="f-imp" accept=".json,application/json"><p class="note" id="imp-status" aria-live="polite"></p></div></details>' +
+    '<details class="card" id="jg-add"><summary>Adicionar jogador</summary>' +
+      '<form id="f-jog" class="form" autocomplete="off" novalidate>' +
+        '<label class="fld">Nome<input id="fj-nome"></label>' +
+        '<label class="fld">WhatsApp com DDD<input id="fj-zap" inputmode="tel" placeholder="(48) 9 9999-9999"></label>' +
+        '<fieldset><legend>Esportes</legend><div class="chips-in">' + ESPORTES.map(function(e){ return '<label><input type="checkbox" name="esp" value="' + esc(e) + '"><span>' + esc(e) + "</span></label>"; }).join("") + "</div></fieldset>" +
+        '<fieldset><legend>Nível</legend><div class="seg cinco">' + [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="niv" value="' + n + '" aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") + '</div><p class="nivel-txt" id="fj-nivel-txt">Escolha de 1 (iniciante) a 5 (competitivo).</p></fieldset>' +
+        '<fieldset><legend>Quando pode jogar</legend><div class="chips-in">' + HORARIOS.map(function(h){ return '<label><input type="checkbox" name="hor" value="' + esc(h) + '"><span>' + esc(HORARIO_CURTO[h]) + "</span></label>"; }).join("") + "</div></fieldset>" +
+        '<div id="fj-erro" class="banner" hidden></div>' +
+        '<button class="btn primary block" type="submit">Salvar jogador</button>' +
+      "</form></details>";
+  var f = $("#f-jog");
+  $("#f-imp").addEventListener("change", importarArquivo);
+  f.addEventListener("change", function(ev){ if (ev.target.name === "niv") setText("fj-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]); });
+  f.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var erroEl = $("#fj-erro");
+    function falha(m){ erroEl.textContent = m; erroEl.hidden = false; }
+    var nome = $("#fj-nome").value.trim();
+    if (nome.length < 2) return falha("Escreva o nome.");
+    var zapRaw = $("#fj-zap").value.trim(), zap = zapRaw ? normalizarZap(zapRaw) : "";
+    if (zapRaw && !zap) return falha("WhatsApp: DDD e número, como (48) 9 9999-9999.");
+    var esportes = $$('input[name="esp"]:checked', f).map(function(i){ return i.value; });
+    if (!esportes.length) return falha("Marque pelo menos um esporte.");
+    var nivEl = f.querySelector('input[name="niv"]:checked');
+    if (!nivEl) return falha("Escolha o nível.");
+    var horarios = $$('input[name="hor"]:checked', f).map(function(i){ return i.value; });
+    if (!horarios.length) return falha("Marque quando a pessoa pode jogar.");
+    erroEl.hidden = true;
+    gravar(function(){ return S.db.doc("jogadores/" + novoId()).set({ nome: nome, whatsapp: zap, esportes: esportes, nivel: Number(nivEl.value), horarios: horarios, origem: "manual", criadoEm: Date.now() }); })
+      .then(function(r){ if (r.ok){ f.reset(); setText("fj-nivel-txt", "Escolha de 1 (iniciante) a 5 (competitivo)."); $("#jg-add").open = false; toast("Jogador salvo"); } });
+  });
+  v.update = function(){
+    var lista = S.jogadores.slice().sort(function(a, b){ return nomeJ(a).localeCompare(nomeJ(b)); });
+    setText("jg-n", lista.length + plural(lista.length, " pessoa", " pessoas"));
+    $("#jg-lista").innerHTML = lista.length ? lista.map(rowJogador).join("") : '<div class="empty">' + (S.carregado.jogadores ? "Ninguém na base ainda." : "Carregando jogadores…") + "</div>";
+  };
+};
+
+/* ---------- Ações (um ouvinte para a página toda) ---------- */
+function jogoAtual(){ return S.jogos.filter(function(x){ return x.id === V.id; })[0]; }
+function armar(btn, texto){
+  if (btn.getAttribute("data-armado") === "1") return true;
+  var orig = btn.textContent; btn.setAttribute("data-armado", "1"); btn.textContent = texto;
+  setTimeout(function(){ if (btn.isConnected){ btn.removeAttribute("data-armado"); btn.textContent = orig; } }, 4000);
+  return false;
+}
+document.addEventListener("click", function(ev){
+  var t = ev.target.closest ? ev.target.closest("[data-acao]") : null;
+  if (!t) return;
+  var a = t.getAttribute("data-acao"), g;
+  if (a === "palco"){
+    S.palco = !S.palco; lsSet("palco", S.palco ? "1" : "0"); nav(); atualizar();
+    toast(S.palco ? "Nomes da base trocados por apelidos" : "Nomes reais de volta");
+  } else if (a === "convidar"){
+    var jg = t.getAttribute("data-jogo"), jd = t.getAttribute("data-jogador");
+    gravar(function(){ return S.db.doc("convites/" + jg + "_" + jd).set({ jogoId: jg, jogadorId: jd, em: Date.now() }); }, true);
+  } else if (a === "confirmou"){
+    var jogo = t.getAttribute("data-jogo"), jid = t.getAttribute("data-jogador");
+    var j = S.jogadores.filter(function(x){ return x.id === jid; })[0];
+    if (!j) return;
+    t.disabled = true;
+    gravar(function(){ return S.db.doc("confirmacoes/" + jogo + "_" + jid).set({ jogoId: jogo, jogadorId: jid, nome: primeiroNome(j.nome), via: "whatsapp", criadoEm: Date.now() }); })
+      .then(function(r){ if (!r.ok) t.disabled = false; });
+  } else if (a === "tirar"){
+    var cid = t.getAttribute("data-conf"); t.disabled = true;
+    gravar(function(){ return S.db.doc("confirmacoes/" + cid).delete(); }).then(function(r){ if (!r.ok) t.disabled = false; });
+  } else if (a === "sair-conta"){
+    S.conta.sair().then(function(){ toast("Você saiu da conta"); });
+  } else if (a === "copiar-uid"){
+    if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "reverificar"){
+    verificarAdmin();
+  } else if (a === "copiar-msg"){
+    g = jogoAtual(); if (g) copiar(msgGrupo(g, V.comLink), "Mensagem copiada");
+  } else if (a === "copiar-link"){
+    g = jogoAtual(); if (g) copiar(linkConvite(g), "Link copiado");
+  } else if (a === "teste"){
+    g = jogoAtual(); if (!g) return;
+    gravar(function(){ return S.db.doc("jogos/" + g.id).update({ teste: !g.teste }); });
+  } else if (a === "apagar"){
+    g = jogoAtual(); if (!g || !armar(t, "Toque de novo para apagar")) return;
+    t.disabled = true;
+    var cs = S.confs.filter(function(c){ return c.jogoId === g.id; }), cvs = S.convites.filter(function(c){ return c.jogoId === g.id; });
+    var cadeia = Promise.resolve();
+    cs.forEach(function(c){ cadeia = cadeia.then(function(){ return gravar(function(){ return S.db.doc("confirmacoes/" + c.id).delete(); }, true); }); });
+    cvs.forEach(function(c){ cadeia = cadeia.then(function(){ return gravar(function(){ return S.db.doc("convites/" + c.id).delete(); }, true); }); });
+    cadeia.then(function(){ return gravar(function(){ return S.db.doc("jogos/" + g.id).delete(); }); })
+      .then(function(r){ if (r.ok){ toast("Jogo apagado"); location.hash = "painel"; } else t.disabled = false; });
+  } else if (a === "preco"){
+    g = jogoAtual(); if (!g) return;
+    V.editandoPreco = true;
+    $("#j-preco").innerHTML = '<form id="f-preco" class="inline"><label class="sr" for="fp-valor">Preço da quadra (R$)</label>' +
+      '<input id="fp-valor" inputmode="decimal" placeholder="Preço da quadra (R$)" value="' + (Number(g.valor) > 0 ? esc(String(g.valor).replace(".", ",")) : "") + '">' +
+      '<button class="btn primary sm" type="submit">Salvar</button><button class="btn ghost sm" type="button" data-acao="preco-cancelar">Cancelar</button></form>';
+    $("#fp-valor").focus();
+    $("#f-preco").addEventListener("submit", function(e2){
+      e2.preventDefault();
+      var val = lerValor($("#fp-valor").value);
+      if (val === undefined){ toast("Use só números, como 90 ou 90,50."); return; }
+      gravar(function(){ return S.db.doc("jogos/" + g.id).update({ valor: val }); }).then(function(r){ if (r.ok){ V.editandoPreco = false; atualizar(); } });
+    });
+  } else if (a === "preco-cancelar"){
+    V.editandoPreco = false; atualizar();
+  } else if (a === "remover-jogador"){
+    if (!armar(t, "Toque de novo para remover")) return;
+    var pid = t.getAttribute("data-id"); t.disabled = true;
+    gravar(function(){ return S.db.doc("jogadores/" + pid).delete(); }).then(function(r){ if (r.ok) toast("Jogador removido"); else t.disabled = false; });
+  } else if (a === "fechar-copia"){
+    $("#copia").hidden = true;
+  }
+});
+
+/* ---------- Dados ao vivo ---------- */
+function sub(col, alvo, publico){
+  return S.db.collection(col).onSnapshot(function(snap){
+    S[alvo] = snap.docs.map(function(d){ var o = Object.assign({}, d.data()); o.id = d.id; return o; });
+    S.carregado[col] = true;
+    if (publico && (!snap.metadata || !snap.metadata.fromCache)){
+      S.confirmado[col] = true;
+      if (S.confirmado.jogos && S.confirmado.confirmacoes){ clearTimeout(S.timerLento); S.lento = false; }
+    }
+    atualizar();
+  }, function(err){
+    if (window.console) console.warn(col, err);
+    S.carregado[col] = true;
+    if (publico){ S.erroCarga = err; clearTimeout(S.timerLento); }
+    else toast("Sem acesso à lista de " + col + ". Confira se sua conta está em admins.");
+    atualizar();
+  });
+}
+function assinarPublico(){
+  S.timerLento = setTimeout(function(){ S.lento = true; atualizar(); }, 10000);
+  sub("jogos", "jogos", true);
+  sub("confirmacoes", "confs", true);
+}
+function desassinarAdmin(){
+  S.subsAdm.forEach(function(u){ try { u(); } catch(e){} });
+  S.subsAdm = []; S.jogadores = []; S.convites = []; S.carregado.jogadores = false; S.carregado.convites = false;
+}
+function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false)]; }
+function verificarAdmin(){
+  if (!S.usuario) return;
+  var uid = S.usuario.uid;
+  S.verificandoAdmin = true; montar();
+  S.conta.ehAdmin(uid).then(function(ok){
+    if (!S.usuario || S.usuario.uid !== uid) return;
+    S.admin = !!ok; S.verificandoAdmin = false;
+    if (S.admin) assinarAdmin(); else desassinarAdmin();
+    montar();
+  });
+}
+
+function iniciar(){
+  window.addEventListener("hashchange", montar);
+  montar();
+  var limite = setTimeout(function(){ if (S.estado === "carregando"){ S.estado = "semBanco"; montar(); } }, 15000);
+  (window.backendPronto || Promise.resolve(null)).then(function(b){
+    clearTimeout(limite);
+    if (!b || b.erro){ S.estado = (b && b.erro === "config") ? "semConfig" : "semBanco"; montar(); return; }
+    S.db = b.db; S.conta = b.conta; S.estado = "pronto";
+    assinarPublico();
+    S.conta.aoMudar(function(u){
+      S.authPronto = true;
+      S.usuario = u ? { uid: u.uid, email: u.email || "" } : null;
+      if (!S.usuario){ S.admin = false; S.verificandoAdmin = false; desassinarAdmin(); montar(); return; }
+      verificarAdmin();
+    });
+    montar();
+  });
+}
+iniciar();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// Regras do Fechou. Cole em: Firebase > Firestore Database > Regras > Publicar.
+// - Jogos e confirmações: qualquer um lê (é o que o convite mostra).
+// - Jogador sem conta: só cria a própria confirmação, num jogo que existe.
+// - Lista de jogadores (com WhatsApp) e convites: só a equipe lê e escreve.
+// - Equipe = conta com um documento em /admins/{uid}, criado à mão no console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehEquipe() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function confirmacaoPublicaValida() {
+      return request.resource.data.keys().hasOnly(['jogoId', 'nome', 'via', 'criadoEm'])
+        && request.resource.data.keys().hasAll(['jogoId', 'nome', 'via', 'criadoEm'])
+        && request.resource.data.via == 'link'
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 2
+        && request.resource.data.nome.size() <= 40
+        && request.resource.data.jogoId is string
+        && request.resource.data.jogoId.size() <= 40
+        && request.resource.data.criadoEm is number
+        && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId));
+    }
+
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /jogadores/{id} {
+      allow read, write: if ehEquipe();
+    }
+
+    match /convites/{id} {
+      allow read, write: if ehEquipe();
+    }
+
+    match /jogos/{id} {
+      allow read: if true;
+      allow write: if ehEquipe();
+    }
+
+    match /confirmacoes/{id} {
+      allow read: if true;
+      allow create: if ehEquipe() || confirmacaoPublicaValida();
+      allow update, delete: if ehEquipe();
+    }
+  }
+}
