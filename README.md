@@ -4,7 +4,7 @@ Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá
 
 **Hipótese:** gente sem parceiro vira reserva num horário que a arena não vende.
 
-A arena (ou a equipe, no papel de concierge) abre um horário vago ou um grupo incompleto. O app mostra quem da base combina: mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app. Quando completa, aparece **Fechou! Reserva gerada: R$ X**.
+Quem quer jogar marca o jogo (sozinho ou com um grupo incompleto), e a arena ou o time também abrem horários vagos. O app mostra quem da base combina: mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app. Quando completa, aparece **Fechou! Reserva gerada: R$ X**.
 
 - App: https://danilosramos.github.io/mvp-sw/
 - Convite de um jogo: `https://danilosramos.github.io/mvp-sw/#convite-<id>`
@@ -49,16 +49,20 @@ O arquivo de jogadores tem nome e WhatsApp de pessoas reais: **nunca suba esse a
 
 ## Como usar
 
-**Equipe (arena ou concierge)**
+**Quem quer jogar (sozinho ou com um grupo incompleto)**
 
-1. **Abrir jogo com vagas**: horário vago ou grupo incompleto, esporte, nível, dia e hora, vagas e preço da quadra.
-2. **Quem combina**: toque em **Convidar** para abrir o WhatsApp com a mensagem pronta.
-3. Quem tocar no link confirma sozinho. Quem responder "tô dentro" no WhatsApp, marque em **Confirmou**.
-4. Quando completa: **Fechou!** e a reserva entra no painel.
+1. Abre o app e toca em **Entrar com Google para marcar**.
+2. **Marcar jogo**: esporte, nível, dia e hora, arena, quantos são no total e quantos já são. O app diz quantos faltam.
+3. Manda o link nos grupos. Quem responder no WhatsApp, adiciona em **Confirmados**.
+4. Quem confirma pelo link vê o WhatsApp de quem marcou (se informado) para combinar.
 
-Em demonstrações, marque **Jogo de teste**: ele aparece na lista, mas fica fora dos números do painel.
+**Time (arena ou concierge)**
 
-**Jogador**: abre o link do convite, escreve o nome e toca em **Tô dentro**. Sem conta e sem app.
+1. Vê todos os jogos, inclusive os marcados por jogadores ("por Ana").
+2. Em cada jogo, **Quem combina** lista a base: toque em **Convidar** para abrir o WhatsApp com a mensagem pronta.
+3. Também marca jogos para horários vagos da arena. Em demonstrações, marque **Jogo de teste**: fica fora dos números do painel.
+
+**Quem recebe o convite**: abre o link, escreve o nome e toca em **Tô dentro**. Sem conta e sem app.
 
 ## Roteiro da demo (40 segundos)
 

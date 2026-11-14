@@ -222,6 +222,7 @@ var NIVEIS = ["","Iniciante","Básico","Intermediário","Avançado","Competitivo
 var NIVEL_DESC = ["","Iniciante: começou agora","Básico: joga por diversão","Intermediário: joga toda semana","Avançado: joga torneio local","Competitivo ou professor"];
 var HORARIOS = ["Manhã em dia útil","Tarde em dia útil","Noite em dia útil","Sábado de manhã","Sábado à tarde ou noite","Domingo de manhã","Domingo à tarde ou noite"];
 var HORARIO_CURTO = {"Manhã em dia útil":"Seg–sex manhã","Tarde em dia útil":"Seg–sex tarde","Noite em dia útil":"Seg–sex noite","Sábado de manhã":"Sáb manhã","Sábado à tarde ou noite":"Sáb tarde/noite","Domingo de manhã":"Dom manhã","Domingo à tarde ou noite":"Dom tarde/noite"};
+var ARENAS_REGIAO = ["Arena BT by Betina Travi","X7 Padel","Reis D'arena","Toca do Lobo Arena","Arena 421","Arena HCL","Arena Araranguá","Núcleo Sport Club Serramar","Arena 165","Araras Sport","Art Soccer Campo Society","Grêmio Fronteira Clube","Boleiros Beer","AABB Araranguá"];
 var PSEUDO = ["Lucas","Marina","Rafa","Bia","Gui","Duda","Léo","Carol","Thiago","Júlia","Nina","Bruno","Lara","Davi","Malu","Teo"];
 var DIAS = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
 var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -300,6 +301,13 @@ function estadoJogo(g){
   var n = confsDo(g.id).length, vagas = Math.max(0, Number(g.vagas) || 0);
   return { n: n, vagas: vagas, faltam: Math.max(0, vagas - n), fechado: vagas > 0 && n >= vagas, preench: Math.min(n, vagas) };
 }
+function jaSao(g){ return Math.max(0, (Number(g.total) || 0) - (Number(g.vagas) || 0)); }
+function rotuloSituacao(g){
+  var ja = jaSao(g);
+  if (g.situacao === "cancelar" || ja >= 2) return "Grupo incompleto";
+  if (ja === 1) return "Sozinho, procurando gente";
+  return "Horário vago";
+}
 function jaPassou(g){ var dt = parseQuando(g.quando); return dt ? dt.getTime() < Date.now() - 2 * 3600e3 : false; }
 function porPessoa(g){ var v = Number(g.valor), t = Number(g.total); return (v > 0 && t > 0) ? v / t : null; }
 function linkConvite(g){ return location.origin + location.pathname + "#convite-" + g.id; }
@@ -348,7 +356,7 @@ function msgConvite(g, j, av, comLink){
   var e = estadoJogo(g), pp = porPessoa(g), nome = primeiroNome(j.nome);
   var porque = (av.nivelOk && av.horaOk) ? "é do seu nível e no horário que você marcou" : (av.horaOk ? "é no horário que você marcou" : "é do seu nível");
   return [
-    "Oi" + (nome ? ", " + nome : "") + "! Tem jogo de " + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ") " + quandoTexto(g.quando) + " na " + g.arena + ".",
+    "Oi" + (nome ? ", " + nome : "") + "! " + (g.origem === "jogador" && g.donoNome ? g.donoNome + " está montando um jogo de " : "Tem jogo de ") + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ") " + quandoTexto(g.quando) + " na " + g.arena + ".",
     plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + " pra fechar, e te chamei porque " + porque + "." + (pp ? " Fica " + brl(pp) + " por pessoa." : ""),
     comLink ? "Topa? Confirma aqui: " + linkConvite(g) + "\nOu só responde \"tô dentro\"." : "Topa? Responde \"tô dentro\" que eu te coloco no jogo.",
     "Se não der, tudo bem!"
@@ -453,8 +461,10 @@ function montar(){
   if (S.estado !== "pronto") nome = S.estado;
   else if (nome !== "convite"){
     if (!S.authPronto || S.verificandoAdmin) nome = "carregando";
-    else if (!S.usuario) nome = "entrar";
-    else if (!S.admin) nome = "semAcesso";
+    else if (!S.usuario){
+      if (nome === "jogo"){ location.replace("#convite-" + r.id); return; }
+      nome = "inicio";
+    } else if (!S.admin && (nome === "painel" || nome === "jogadores")) nome = "meus";
   }
   V = { nome: nome, id: r.id, rota: r.nome };
   document.body.setAttribute("data-view", nome);
@@ -466,7 +476,12 @@ function montar(){
 function atualizar(){ if (V && V.update) V.update(); avisos(); }
 function nav(){
   var el = $("#nav");
-  if (S.estado !== "pronto" || !S.admin || V.nome === "convite"){ el.innerHTML = ""; return; }
+  if (S.estado !== "pronto" || V.nome === "convite" || !S.usuario){ el.innerHTML = ""; return; }
+  if (!S.admin){
+    el.innerHTML = '<a href="#painel"' + (V.nome === "meus" || V.nome === "jogo" ? ' aria-current="page"' : "") + ">Meus jogos</a>" +
+      '<a href="#novo"' + (V.nome === "novo" ? ' aria-current="page"' : "") + ">Marcar jogo</a>";
+    return;
+  }
   var emJogos = ["painel", "novo", "jogo"].indexOf(V.nome) >= 0;
   el.innerHTML =
     '<a href="#painel"' + (emJogos ? ' aria-current="page"' : "") + ">Jogos</a>" +
@@ -494,32 +509,35 @@ function msgLogin(e){
   if (/network/.test(c)) return "Sem internet. Tente de novo.";
   return "Não consegui entrar (" + (c || "erro desconhecido") + ").";
 }
-VIEWS.entrar = function(){
-  app.innerHTML = '<div class="card stack"><span class="kicker">Equipe da arena</span><h1>Entrar no painel</h1>' +
-    '<p class="note">Jogador não precisa de conta: o link do convite abre direto.</p>' +
-    '<button class="btn primary block big" type="button" id="fl-google">Entrar com Google</button>' +
-    '<div id="fl-erro" class="banner" hidden></div></div>';
-  $("#fl-google").addEventListener("click", function(){
-    var btn = this, erroEl = $("#fl-erro");
+function ligarLoginGoogle(btnId, erroId){
+  $("#" + btnId).addEventListener("click", function(){
+    var btn = this, erroEl = $("#" + erroId);
     btn.disabled = true; erroEl.hidden = true;
     S.conta.entrarGoogle().catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
   });
+}
+VIEWS.inicio = function(){
+  app.innerHTML = '<div class="card stack"><span class="kicker">Jogo com vaga</span><h1>Falta gente pro seu jogo?</h1>' +
+    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você confirma em um toque, e a quadra vira reserva.</p>" +
+    '<button class="btn primary block big" type="button" id="fl-google">Entrar com Google para marcar</button>' +
+    '<div id="fl-erro" class="banner" hidden></div>' +
+    '<p class="note">Recebeu um convite? Abra o link que veio no WhatsApp: para confirmar presença não precisa de conta.</p></div>' +
+    '<p class="note">É da equipe de uma arena? Entre com Google e use o código do time em “Meus jogos”.</p>';
+  ligarLoginGoogle("fl-google", "fl-erro");
 };
-VIEWS.semAcesso = function(){
+VIEWS.meus = function(v){
   var u = S.usuario || {};
-  app.innerHTML = '<div class="card stack"><span class="kicker">Quase lá</span><h1>Entrar no time</h1>' +
-    "<p>Você entrou como <b>" + esc(u.email || "") + "</b>. Digite o código do time: ele aparece no painel de quem já é da equipe.</p>" +
-    '<form id="f-codigo" class="form" novalidate>' +
-      '<label class="fld">Código do time<input id="fc-codigo" class="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>' +
-      '<div id="fc-erro" class="banner" hidden></div>' +
-      '<button class="btn primary block big" type="submit" id="fc-entrar">Entrar no time</button>' +
-    "</form>" +
-    '<details><summary class="note">Sem código? Liberar pelo ID</summary><div class="stack">' +
-      '<p class="note">Quem cuida do Firebase pode criar o documento admins/ID com um campo nome.</p>' +
-      '<pre class="msg">' + esc(u.uid || "") + "</pre>" +
-      '<div class="row-btns"><button class="btn ghost sm" type="button" data-acao="copiar-uid">Copiar ID</button>' +
-      '<button class="btn ghost sm" type="button" data-acao="reverificar">Já liberaram</button></div></div></details>' +
-    '<p><button class="link" type="button" data-acao="sair-conta">Sair desta conta</button></p></div>';
+  app.innerHTML =
+    "<h1>Meus jogos</h1>" +
+    '<a class="btn primary block big" href="#novo">Marcar jogo</a>' +
+    '<div class="list" id="m-lista"></div>' +
+    '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
+      '<form id="f-codigo" class="form" novalidate>' +
+        '<label class="fld">Código do time<input id="fc-codigo" class="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>' +
+        '<div id="fc-erro" class="banner" hidden></div>' +
+        '<button class="btn primary block" type="submit" id="fc-entrar">Entrar no time</button>' +
+      "</form></details>" +
+    '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   $("#f-codigo").addEventListener("submit", function(ev){
     ev.preventDefault();
     var cod = $("#fc-codigo").value.toUpperCase().replace(/[^A-Z0-9]/g, ""), erroEl = $("#fc-erro"), btn = $("#fc-entrar");
@@ -534,6 +552,13 @@ VIEWS.semAcesso = function(){
       }
     });
   });
+  v.update = function(){
+    var meus = S.jogos.filter(function(g){ return g.donoUid === u.uid; })
+      .sort(function(a, b){ return String(b.quando).localeCompare(String(a.quando)); });
+    $("#m-lista").innerHTML = meus.length ? meus.map(cardJogo).join("")
+      : '<div class="empty">' + (S.carregado.jogos ? "Você ainda não marcou nenhum jogo." : "Carregando…") + "</div>";
+    $$("[data-w]", app).forEach(function(s){ s.style.width = s.getAttribute("data-w") + "%"; });
+  };
 };
 
 /* Painel */
@@ -543,7 +568,7 @@ function cardJogo(g){
   return '<a class="game" href="#jogo-' + esc(g.id) + '">' +
     '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
     '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + "</div>" +
-    '<div class="g-sub">' + (g.situacao === "cancelar" ? "Grupo incompleto" : "Horário vago") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
+    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.origem === "jogador" && g.donoNome ? " · por " + esc(g.donoNome) : "") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
     '<div class="g-count"><span class="num">' + e.preench + "/" + e.vagas + "</span>" + pill + "</div>" +
     '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></a>';
 }
@@ -556,7 +581,7 @@ VIEWS.painel = function(v){
       '<div class="tile"><span class="lbl">Jogadores na base</span><span class="num" id="t-base">—</span><span class="sub" id="t-base-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogos abertos</span><span class="num" id="t-abertos">—</span><span class="sub">reais, esperando gente</span></div>' +
     "</section>" +
-    '<a class="btn primary block big" href="#novo">Abrir jogo com vagas</a>' +
+    '<a class="btn primary block big" href="#novo">Marcar jogo</a>' +
     '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
     '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
     '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
@@ -577,7 +602,7 @@ VIEWS.painel = function(v){
     var abertos = ord.filter(function(g){ return !estadoJogo(g).fechado; });
     var fechados = ord.filter(function(g){ return estadoJogo(g).fechado; }).reverse();
     setText("t-abertos", abertos.filter(function(g){ return !g.teste && !jaPassou(g); }).length);
-    $("#l-abertos").innerHTML = abertos.length ? abertos.map(cardJogo).join("") : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto. Toque em “Abrir jogo com vagas”." : "Carregando jogos…") + "</div>";
+    $("#l-abertos").innerHTML = abertos.length ? abertos.map(cardJogo).join("") : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto. Toque em “Marcar jogo”." : "Carregando jogos…") + "</div>";
     $("#l-fechados").innerHTML = fechados.length ? fechados.map(cardJogo).join("") : '<div class="empty">Quando um jogo completar, ele aparece aqui.</div>';
     $$("[data-w]", app).forEach(function(s){ s.style.width = s.getAttribute("data-w") + "%"; });
     var cod = codigoEquipe(), time = $("#p-time");
@@ -594,91 +619,105 @@ VIEWS.painel = function(v){
 
 /* Abrir jogo */
 VIEWS.novo = function(v){
-  var arenas = [];
+  var equipe = S.admin, u = S.usuario || {};
+  var arenas = ARENAS_REGIAO.slice();
   S.jogos.forEach(function(g){ if (g.arena && arenas.indexOf(g.arena) < 0) arenas.push(g.arena); });
   app.innerHTML =
-    '<a class="back" href="#painel">← Painel</a>' +
-    "<h1>Abrir jogo com vagas</h1>" +
+    '<a class="back" href="#painel">← ' + (equipe ? "Painel" : "Meus jogos") + "</a>" +
+    "<h1>Marcar jogo</h1>" +
     '<form id="f-novo" class="card form" novalidate>' +
-      '<fieldset class="seg"><legend>O que está acontecendo?</legend>' +
-        '<label><input type="radio" name="situacao" value="vago" checked><span>Horário vago<small>Ninguém reservou. Formar um jogo do zero.</small></span></label>' +
-        '<label><input type="radio" name="situacao" value="cancelar"><span>Grupo incompleto<small>Alguém furou. Completar o grupo.</small></span></label>' +
-      "</fieldset>" +
-      '<label class="fld">Arena<input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
-      '<datalist id="dl-arenas">' + arenas.map(function(a){ return '<option value="' + esc(a) + '">'; }).join("") + "</datalist>" +
       '<label class="fld">Esporte<select id="f-esporte">' + ESPORTES.map(function(e){ return "<option>" + esc(e) + "</option>"; }).join("") + "</select></label>" +
       '<fieldset><legend>Nível do jogo</legend><div class="seg cinco">' +
         [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === 3 ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
       '</div><p class="nivel-txt" id="f-nivel-txt">' + esc("3 · " + NIVEL_DESC[3]) + "</p></fieldset>" +
       '<label class="fld">Dia e hora<input id="f-quando" type="datetime-local" step="1800" value="' + proximaHora() + '"></label>' +
+      '<label class="fld">Onde (arena)<input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
+      '<datalist id="dl-arenas">' + arenas.map(function(a){ return '<option value="' + esc(a) + '">'; }).join("") + "</datalist>" +
       '<div class="two">' +
-        '<label class="fld">Jogadores no jogo<input id="f-total" type="number" inputmode="numeric" min="2" max="30" value="4"></label>' +
-        '<label class="fld">Vagas abertas<input id="f-vagas" type="number" inputmode="numeric" min="1" max="30" value="4"></label>' +
+        '<label class="fld">Jogadores no total<input id="f-total" type="number" inputmode="numeric" min="2" max="30" value="4"></label>' +
+        '<label class="fld">' + (equipe ? "Já são quantos?" : "Já são quantos, contando você?") + '<input id="f-ja" type="number" inputmode="numeric" min="0" max="29" value="' + (equipe ? 0 : 1) + '"></label>' +
       "</div>" +
-      '<label class="fld">Preço da quadra nesse horário (R$)<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
-      '<label class="check"><input id="f-teste" type="checkbox"><span>Jogo de teste</span><small>Fica fora dos números do painel. Use na demonstração.</small></label>' +
+      '<p class="nivel-txt" id="f-faltam" aria-live="polite"></p>' +
+      '<label class="fld">Preço da quadra (R$)' + (equipe ? "" : ", se souber") + '<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
+      '<label class="fld">Seu WhatsApp, para quem confirmar falar com você<input id="f-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(lsGet("zap") || "") + '"></label>' +
+      '<p class="note">Quem tiver o link do jogo vê esse número. Deixe em branco se preferir combinar pelo grupo.</p>' +
+      (equipe ? '<label class="check"><input id="f-teste" type="checkbox"><span>Jogo de teste</span><small>Fica fora dos números do painel. Use na demonstração.</small></label>' : "") +
       '<div id="f-erro" class="banner" hidden></div>' +
-      '<button class="btn primary block big" type="submit" id="f-enviar">Abrir jogo e ver quem combina</button>' +
+      '<button class="btn primary block big" type="submit" id="f-enviar">Marcar e pegar o link</button>' +
     "</form>";
 
-  var f = $("#f-novo"), esp = $("#f-esporte"), tot = $("#f-total"), vag = $("#f-vagas");
-  function sit(){ var r = f.querySelector('input[name="situacao"]:checked'); return r ? r.value : "vago"; }
-  function ajustarVagas(){ var t = parseInt(tot.value, 10) || 0; vag.value = sit() === "cancelar" ? 1 : t; }
-  esp.addEventListener("change", function(){ tot.value = TOTAL_PADRAO[esp.value] || 4; ajustarVagas(); });
-  tot.addEventListener("input", function(){ if (sit() === "vago") vag.value = tot.value; });
+  var f = $("#f-novo"), esp = $("#f-esporte"), tot = $("#f-total"), ja = $("#f-ja");
+  function faltam(){ return (parseInt(tot.value, 10) || 0) - (parseInt(ja.value, 10) || 0); }
+  function mostrarFaltam(){
+    var n = faltam();
+    setText("f-faltam", n >= 1 ? plural(n, "Falta 1 pra fechar.", "Faltam " + n + " pra fechar.") : "Já está completo: confira os números.");
+  }
+  esp.addEventListener("change", function(){ tot.value = TOTAL_PADRAO[esp.value] || 4; mostrarFaltam(); });
+  tot.addEventListener("input", mostrarFaltam);
+  ja.addEventListener("input", mostrarFaltam);
   f.addEventListener("change", function(ev){
-    if (ev.target.name === "situacao") ajustarVagas();
     if (ev.target.name === "nivel") setText("f-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]);
   });
+  mostrarFaltam();
   f.addEventListener("submit", function(ev){
     ev.preventDefault();
     var erroEl = $("#f-erro");
     function falha(m){ erroEl.textContent = m; erroEl.hidden = false; erroEl.scrollIntoView({ block: "center" }); }
+    var quando = $("#f-quando").value, dt = parseQuando(quando);
+    if (!dt) return falha("Escolha o dia e a hora do jogo.");
+    if (dt.getTime() < Date.now() - 30 * 60e3) return falha("Esse horário já passou. Escolha um dia e hora que ainda vão acontecer.");
     var arena = $("#f-arena").value.trim();
-    if (!arena) return falha("Escreva o nome da arena.");
-    var quando = $("#f-quando").value;
-    if (!parseQuando(quando)) return falha("Escolha o dia e a hora do jogo.");
-    var total = parseInt(tot.value, 10);
-    if (!(total >= 2 && total <= 30)) return falha("Jogadores no jogo: de 2 a 30.");
-    var vagas = parseInt(vag.value, 10);
-    if (!(vagas >= 1 && vagas <= total)) return falha("Vagas abertas: de 1 até o número de jogadores do jogo.");
+    if (arena.length < 2) return falha("Escreva onde vai ser o jogo.");
+    var total = parseInt(tot.value, 10), jaN = parseInt(ja.value, 10);
+    if (!(total >= 2 && total <= 30)) return falha("Jogadores no total: de 2 a 30.");
+    if (!(jaN >= 0 && jaN < total)) return falha("Já são quantos: precisa sobrar pelo menos 1 vaga.");
     var valor = lerValor($("#f-valor").value);
     if (valor === undefined) return falha("Preço: use só números, como 90 ou 90,50.");
+    var zapRaw = $("#f-zap").value.trim(), zap = zapRaw ? normalizarZap(zapRaw) : "";
+    if (zapRaw && !zap) return falha("WhatsApp: DDD e número, como (48) 9 9999-9999.");
     var nivelEl = f.querySelector('input[name="nivel"]:checked');
-    var dados = { arena: arena, esporte: esp.value, nivel: Number(nivelEl ? nivelEl.value : 3), quando: quando, total: total, vagas: vagas, valor: valor, situacao: sit(), teste: $("#f-teste").checked, criadoEm: Date.now() };
+    var dados = {
+      arena: arena.slice(0, 80), esporte: esp.value, nivel: Number(nivelEl ? nivelEl.value : 3), quando: quando,
+      total: total, vagas: total - jaN, valor: valor, situacao: jaN >= 2 ? "cancelar" : "vago",
+      teste: equipe ? $("#f-teste").checked : false, criadoEm: Date.now(),
+      donoUid: u.uid, donoNome: (primeiroNome(u.nome) || String(u.email || "").split("@")[0]).slice(0, 60),
+      donoZap: zap, origem: equipe ? "equipe" : "jogador"
+    };
     var id = novoId(), btn = $("#f-enviar");
     btn.disabled = true; erroEl.hidden = true;
     gravar(function(){ return S.db.doc("jogos/" + id).set(dados); }).then(function(r){
-      if (r.ok){ lsSet("arena", arena); location.hash = "jogo-" + id; }
+      if (r.ok){ lsSet("arena", arena); if (zap) lsSet("zap", zapRaw); location.hash = "jogo-" + id; }
       else btn.disabled = false;
     });
   });
 };
 
 /* Jogo (visão de quem organiza) */
-function esqueletoJogo(){
+function esqueletoJogo(equipe){
   return '<section class="card invite" id="j-head"><div id="j-head-main" class="invite"></div><div id="j-preco"></div></section>' +
     '<section class="card score-card" id="j-score" aria-live="polite"></section>' +
-    '<section><div class="sec-head"><h2>Quem combina</h2><span class="muted" id="j-nmatch"></span></div>' +
-      '<p class="note">Mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário.</p>' +
-      '<div class="list" id="j-match"></div></section>' +
+    (equipe
+      ? '<section><div class="sec-head"><h2>Quem combina</h2><span class="muted" id="j-nmatch"></span></div>' +
+        '<p class="note">Mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário.</p>' +
+        '<div class="list" id="j-match"></div></section>'
+      : '<p class="note">Mande o link nos seus grupos. A equipe do Fechou também chama quem combina com o seu jogo.</p>') +
     '<section><h2>Confirmados</h2><div class="list" id="j-confs"></div>' +
       '<form id="f-addconf" class="inline" autocomplete="off"><label class="sr" for="f-addconf-nome">Nome de quem confirmou</label>' +
-      '<input id="f-addconf-nome" placeholder="Confirmou alguém de fora da lista? Nome">' +
+      '<input id="f-addconf-nome" placeholder="Alguém confirmou no WhatsApp? Nome">' +
       '<button class="btn ghost" type="submit">Adicionar</button></form></section>' +
     '<section class="card"><h2>Divulgar nos grupos</h2>' +
-      '<label class="check"><input type="checkbox" id="j-comlink"><span>Incluir link de confirmação</span><small>Quem tocar no link confirma sozinho e aparece aqui na hora. Quem responder no WhatsApp, você marca em “Confirmou”.</small></label>' +
+      '<label class="check"><input type="checkbox" id="j-comlink"><span>Incluir link de confirmação</span><small>Quem tocar no link confirma sozinho e aparece aqui na hora. Quem responder no WhatsApp, você adiciona em Confirmados.</small></label>' +
       '<pre class="msg" id="j-msg"></pre>' +
       '<div class="row-btns"><a class="btn zap" id="j-grupo" target="_blank" rel="noopener">Enviar no WhatsApp</a>' +
       '<button class="btn ghost" type="button" data-acao="copiar-msg">Copiar mensagem</button>' +
       '<button class="btn ghost" type="button" data-acao="copiar-link">Copiar link</button></div></section>' +
-    '<section class="row-btns"><button class="btn ghost sm" type="button" data-acao="teste" id="j-teste"></button>' +
+    '<section class="row-btns">' + (equipe ? '<button class="btn ghost sm" type="button" data-acao="teste" id="j-teste"></button>' : "") +
     '<button class="btn ghost sm danger" type="button" data-acao="apagar" id="j-apagar">Apagar jogo</button></section>';
 }
-function linhaPreco(g){
+function linhaPreco(g, editar){
   var pp = porPessoa(g);
   return (Number(g.valor) > 0 ? "Quadra " + esc(brl(g.valor)) + (pp ? " · " + esc(brl(pp)) + " por pessoa" : "") : '<span class="muted">Sem preço informado.</span>') +
-    ' <button type="button" class="link" data-acao="preco">' + (Number(g.valor) > 0 ? "mudar" : "informar preço") + "</button>";
+    (editar ? ' <button type="button" class="link" data-acao="preco">' + (Number(g.valor) > 0 ? "mudar" : "informar preço") + "</button>" : "");
 }
 function rowMatch(g, x, ctx){
   var j = x.j, av = x.av, c = ctx.confPorJogador[j.id], cv = ctx.conv[j.id], nome = nomeJ(j);
@@ -702,10 +741,13 @@ function rowMatch(g, x, ctx){
 function pintarJogo(v, g){
   var e = estadoJogo(g);
   $("#j-head-main").innerHTML =
-    '<div class="g-title"><span class="kicker">' + (g.situacao === "cancelar" ? "Grupo incompleto" : "Horário vago") + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
+    '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
     "<h1>" + esc(g.esporte) + "</h1>" +
-    '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div></div>";
-  if (!v.editandoPreco) $("#j-preco").innerHTML = linhaPreco(g);
+    '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div>" +
+    (v.equipe && g.origem === "jogador" && g.donoNome
+      ? "<div>Marcado por " + esc(g.donoNome) + (g.donoZap ? ' · <a href="' + esc(waLink(g.donoZap, "Oi, " + g.donoNome + "! Aqui é da equipe do Fechou, sobre o seu jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + ".")) + '" target="_blank" rel="noopener">falar no WhatsApp</a>' : "") + "</div>"
+      : "") + "</div>";
+  if (!v.editandoPreco) $("#j-preco").innerHTML = linhaPreco(g, v.equipe);
 
   var sc = $("#j-score"), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
   sc.classList.toggle("fechou", e.fechado);
@@ -722,12 +764,14 @@ function pintarJogo(v, g){
   var confs = confsDo(g.id), ctx = { e: e, confPorJogador: {}, conv: {} };
   confs.forEach(function(c){ if (c.jogadorId) ctx.confPorJogador[c.jogadorId] = c; });
   S.convites.forEach(function(c){ if (c.jogoId === g.id) ctx.conv[c.jogadorId] = c; });
-  var rows = S.jogadores.map(function(j){ return { j: j, av: avaliar(j, g) }; }).filter(function(x){ return x.av; })
-    .sort(function(a, b){ return (b.av.score - a.av.score) || (a.av.dist - b.av.dist) || nomeJ(a.j).localeCompare(nomeJ(b.j)); });
-  var full = rows.filter(function(x){ return x.av.score === 2; }).length;
-  setText("j-nmatch", rows.length ? full + plural(full, " combina", " combinam") + (rows.length > full ? ", " + (rows.length - full) + " quase" : "") : "");
-  $("#j-match").innerHTML = rows.length ? rows.map(function(x){ return rowMatch(g, x, ctx); }).join("")
-    : '<div class="empty">' + (S.carregado.jogadores ? "Ninguém da base joga " + esc(esporteMsg(g.esporte)) + " nesse nível e horário. Divulgue nos grupos abaixo." : "Carregando jogadores…") + "</div>";
+  if (v.equipe){
+    var rows = S.jogadores.map(function(j){ return { j: j, av: avaliar(j, g) }; }).filter(function(x){ return x.av; })
+      .sort(function(a, b){ return (b.av.score - a.av.score) || (a.av.dist - b.av.dist) || nomeJ(a.j).localeCompare(nomeJ(b.j)); });
+    var full = rows.filter(function(x){ return x.av.score === 2; }).length;
+    setText("j-nmatch", rows.length ? full + plural(full, " combina", " combinam") + (rows.length > full ? ", " + (rows.length - full) + " quase" : "") : "");
+    $("#j-match").innerHTML = rows.length ? rows.map(function(x){ return rowMatch(g, x, ctx); }).join("")
+      : '<div class="empty">' + (S.carregado.jogadores ? "Ninguém da base joga " + esc(esporteMsg(g.esporte)) + " nesse nível e horário. Divulgue nos grupos abaixo." : "Carregando jogadores…") + "</div>";
+  }
 
   $("#j-confs").innerHTML = confs.length ? confs.map(function(c, i){
     var nome = nomeConf(c), espera = i >= e.vagas;
@@ -739,10 +783,10 @@ function pintarJogo(v, g){
   var msg = msgGrupo(g, v.comLink);
   $("#j-msg").textContent = msg;
   $("#j-grupo").href = waLink("", msg);
-  setText("j-teste", g.teste ? "Marcar como jogo real" : "Marcar como teste");
+  if (v.equipe) setText("j-teste", g.teste ? "Marcar como jogo real" : "Marcar como teste");
 }
 VIEWS.jogo = function(v){
-  app.innerHTML = '<a class="back" href="#painel">← Painel</a><div id="j-corpo" class="stack"><div class="empty">Carregando o jogo…</div></div>';
+  app.innerHTML = '<a class="back" href="#painel">← ' + (S.admin ? "Painel" : "Meus jogos") + '</a><div id="j-corpo" class="stack"><div class="empty">Carregando o jogo…</div></div>';
   v.update = function(){
     var g = S.jogos.filter(function(x){ return x.id === v.id; })[0], corpo = $("#j-corpo");
     if (!g){
@@ -750,8 +794,11 @@ VIEWS.jogo = function(v){
       else if (S.lento || S.erroCarga){ corpo.innerHTML = '<div class="empty">Não consegui carregar o jogo. Confira a internet e recarregue.</div>'; v.montado = false; }
       return;
     }
+    var dono = !!S.usuario && g.donoUid === S.usuario.uid;
+    if (!S.admin && !dono){ location.replace("#convite-" + g.id); return; }
+    v.equipe = S.admin;
     if (!v.montado){
-      corpo.innerHTML = esqueletoJogo(); v.montado = true;
+      corpo.innerHTML = esqueletoJogo(v.equipe); v.montado = true;
       v.comLink = true; $("#j-comlink").checked = true;
       $("#j-comlink").addEventListener("change", function(ev){ v.comLink = ev.target.checked; v.update(); });
       $("#f-addconf").addEventListener("submit", function(ev){
@@ -770,9 +817,9 @@ VIEWS.jogo = function(v){
 function pintarAcao(v, g, modo){
   var el = $("#cv-acao");
   if (modo === "form"){
-    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc(lsGet("nome") || "") + '"></label>' +
+    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc(lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
       '<button class="btn primary block big" type="submit" id="fc-btn">Tô dentro</button>' +
-      '<p class="note">Depois de confirmar, quem organizou te chama no WhatsApp para combinar.</p></form>';
+      '<p class="note">Sem cadastro: é só o seu nome.</p></form>';
     $("#f-conf").addEventListener("submit", function(ev){
       ev.preventDefault();
       var nome = $("#fc-nome").value.trim();
@@ -786,7 +833,13 @@ function pintarAcao(v, g, modo){
       });
     });
   } else if (modo === "dentro"){
-    el.innerHTML = '<div class="stack"><div class="status ok">Você está no jogo!</div><p>Quem organizou vai te chamar no WhatsApp para combinar os detalhes. Se mudar de ideia, avise por lá.</p></div>';
+    var quem = g.donoNome || "quem organizou";
+    el.innerHTML = '<div class="stack"><div class="status ok">Você está no jogo!</div>' +
+      (g.donoZap
+        ? "<p>Combine os detalhes com " + esc(quem) + " pelo WhatsApp. Se mudar de ideia, avise por lá.</p>" +
+          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(g.donoZap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! Confirmei no jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
+        : "<p>Combine os detalhes no grupo onde você recebeu o convite. Se mudar de ideia, avise por lá.</p>") +
+      "</div>";
   } else if (modo === "fechado" || modo === "passou"){
     el.innerHTML = '<div class="stack"><h2>' + (modo === "fechado" ? "Esse jogo fechou" : "Esse jogo já passou") + "</h2><p>Quer ser chamado para o próximo jogo do seu nível e horário?</p>" +
       '<a class="btn primary block" href="' + TALLY_URL + '" target="_blank" rel="noopener">Quero ser chamado</a></div>';
@@ -810,12 +863,14 @@ VIEWS.convite = function(v){
       return;
     }
     if (!v.montado){
-      corpo.innerHTML = '<section class="card invite" id="cv-head"></section><section class="card score-card" id="cv-score" aria-live="polite"></section><section class="card" id="cv-acao"></section>';
+      corpo.innerHTML = '<section class="card invite" id="cv-head"></section><section class="card score-card" id="cv-score" aria-live="polite"></section><section class="card" id="cv-acao"></section>' +
+        '<p class="note">Falta gente pro seu jogo também? <a href="#novo">Marque o seu aqui</a>.</p>';
       v.montado = true; v.modo = null;
     }
     var e = estadoJogo(g), pp = porPessoa(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
-    $("#cv-head").innerHTML = '<span class="kicker">' + (g.situacao === "cancelar" ? "Falta gente nesse grupo" : "Jogo com vaga") + "</span><h1>" + esc(g.esporte) + "</h1>" +
+    $("#cv-head").innerHTML = '<span class="kicker">' + (jaSao(g) >= 1 ? "Falta gente nesse jogo" : "Jogo com vaga") + "</span><h1>" + esc(g.esporte) + "</h1>" +
       '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div>" +
+      (g.donoNome ? "<div>Quem organiza: " + esc(g.donoNome) + "</div>" : "") +
       "<div>Nível " + esc((NIVEIS[g.nivel] || "").toLowerCase()) + " · " + esc(g.total) + " jogadores</div>" +
       (pp ? "<div>" + esc(brl(pp)) + ' por pessoa <span class="muted">(quadra ' + esc(brl(g.valor)) + " dividida por " + esc(g.total) + ")</span></div>" : "") + "</div>";
     var nomes = [], semNome = 0, sc = $("#cv-score");

@@ -2,15 +2,49 @@ rules_version = '2';
 
 // Regras do Fechou. Cole em: Firebase > Firestore Database > Regras > Publicar.
 // - Jogos e confirmações: qualquer um lê (é o que o convite mostra).
+// - Qualquer pessoa logada marca o próprio jogo; quem marcou (ou o time) apaga.
 // - Jogador sem conta: só cria a própria confirmação, num jogo que existe.
-// - Lista de jogadores (com WhatsApp) e convites: só a equipe lê e escreve.
-// - Equipe = conta com um documento em /admins/{uid}. A pessoa entra no time com o código do time.
+// - Lista de jogadores (com WhatsApp) e convites: só o time lê e escreve.
+// - Time = conta com um documento em /admins/{uid}. A pessoa entra no time com o código do time.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function ehEquipe() {
       return request.auth != null
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function ehDonoDoJogo(jogoId) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/jogos/$(jogoId)).data.donoUid == request.auth.uid;
+    }
+
+    function jogoDeJogadorValido() {
+      return request.auth != null
+        && request.resource.data.keys().hasOnly(['arena', 'esporte', 'nivel', 'quando', 'total', 'vagas', 'valor', 'situacao', 'teste', 'criadoEm', 'donoUid', 'donoNome', 'donoZap', 'origem'])
+        && request.resource.data.donoUid == request.auth.uid
+        && request.resource.data.origem == 'jogador'
+        && request.resource.data.teste == false
+        && request.resource.data.arena is string
+        && request.resource.data.arena.size() >= 2
+        && request.resource.data.arena.size() <= 80
+        && request.resource.data.esporte is string
+        && request.resource.data.esporte.size() <= 40
+        && request.resource.data.nivel is number
+        && request.resource.data.quando is string
+        && request.resource.data.quando.size() <= 20
+        && request.resource.data.total is number
+        && request.resource.data.total >= 2
+        && request.resource.data.total <= 30
+        && request.resource.data.vagas is number
+        && request.resource.data.vagas >= 1
+        && request.resource.data.vagas <= request.resource.data.total
+        && (request.resource.data.valor == null || request.resource.data.valor is number)
+        && request.resource.data.situacao in ['vago', 'cancelar']
+        && request.resource.data.donoNome is string
+        && request.resource.data.donoNome.size() <= 60
+        && request.resource.data.donoZap is string
+        && request.resource.data.donoZap.size() <= 15;
     }
 
     function confirmacaoPublicaValida() {
@@ -24,6 +58,17 @@ service cloud.firestore {
         && request.resource.data.jogoId.size() <= 40
         && request.resource.data.criadoEm is number
         && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId));
+    }
+
+    // Quem marcou o jogo adiciona quem confirmou pelo WhatsApp.
+    function confirmacaoDoDonoValida() {
+      return request.resource.data.keys().hasOnly(['jogoId', 'nome', 'via', 'criadoEm'])
+        && request.resource.data.via == 'whatsapp'
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 2
+        && request.resource.data.nome.size() <= 40
+        && request.resource.data.jogoId is string
+        && ehDonoDoJogo(request.resource.data.jogoId);
     }
 
     // Entrar no time: a própria pessoa cria admins/{uid} com o código do time certo.
@@ -54,13 +99,16 @@ service cloud.firestore {
 
     match /jogos/{id} {
       allow read: if true;
-      allow write: if ehEquipe();
+      allow create: if ehEquipe() || jogoDeJogadorValido();
+      allow update: if ehEquipe();
+      allow delete: if ehEquipe() || (request.auth != null && resource.data.donoUid == request.auth.uid);
     }
 
     match /confirmacoes/{id} {
       allow read: if true;
-      allow create: if ehEquipe() || confirmacaoPublicaValida();
-      allow update, delete: if ehEquipe();
+      allow create: if ehEquipe() || confirmacaoPublicaValida() || confirmacaoDoDonoValida();
+      allow update: if ehEquipe();
+      allow delete: if ehEquipe() || ehDonoDoJogo(resource.data.jogoId);
     }
   }
 }
