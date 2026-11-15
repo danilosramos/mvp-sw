@@ -17,7 +17,7 @@ Pesquisa feita em 15/11/2026. Tudo que é número de terceiros tem fonte no fim.
 - Pode haver a mesma pessoa em mais de um canal. O Tally mostra 20 envios de 17 respondentes únicos e 99 visitas.
 - Barreiras no formulário (até 2 por pessoa): não conhece lugares ou gente 11 de 20; horários não batem 7; grupo desmarca ou fura 7; falta parceiro do nível 3; preço da quadra 2.
 - Quando podem jogar (formulário): noite em dia útil 13 de 20; sábado à tarde ou noite 12; domingo à tarde ou noite 11.
-- Nível: 17 de 20 são básico ou intermediário. Frequência: 16 de 20 jogam de 1 a 4 vezes por mês.
+- Nível: 17 de 20 são básico ou intermediário. Frequência: 16 de 20 jogam entre 1 vez por mês e 1 vez por semana.
 - Onde jogam (12 responderam): a Arena Criciúma aparece 3 vezes; as outras 9 respostas citam lugares diferentes.
 
 ## 1. O que o mercado já resolve
