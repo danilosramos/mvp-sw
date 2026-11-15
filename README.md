@@ -1,6 +1,8 @@
 # Energia Boa
 
-Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026). Antes se chamava Fechou; o visual segue o [design system](DESIGN.md).
+<img src="icons/logo-energia-boa.png" alt="Logo da Energia Boa: cavalo e raio em roxo e limão" width="320">
+
+Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026). Antes se chamava Fechou. O visual segue a logo do time e o [design system](DESIGN.md).
 
 **Hipótese:** gente sem parceiro vira reserva num horário que a arena não vende.
 

@@ -3,13 +3,13 @@
 // - SDK do Firebase (endereço com versão): cache primeiro. As fontes são do próprio app e entram na cópia do app.
 // - Dados (Firestore, login) nunca passam por aqui: jogos e vagas só valem ao vivo.
 // Para forçar todo mundo a atualizar, mude VERSAO.
-const VERSAO = "v2";
+const VERSAO = "v3";
 const CACHE = "energiaboa-" + VERSAO;
 const SHELL = [
   "./", "index.html", "config.js", "firebase.js", "manifest.webmanifest", "offline.html",
-  "icons/favicon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
+  "icons/favicon-48.png", "icons/marca.png", "icons/palavra.png", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
   "fonts/barlow-latin-400-normal.woff2", "fonts/barlow-latin-600-normal.woff2", "fonts/barlow-latin-700-normal.woff2",
-  "fonts/barlow-condensed-latin-700-normal.woff2", "fonts/barlow-condensed-latin-800-italic.woff2"
+  "fonts/montserrat-latin-700-normal.woff2", "fonts/montserrat-latin-800-normal.woff2"
 ];
 
 self.addEventListener("install", (ev) => {
