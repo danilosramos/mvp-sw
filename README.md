@@ -49,7 +49,13 @@ O arquivo de jogadores tem nome e WhatsApp de pessoas reais: **nunca suba esse a
 
 ## Como usar
 
-Os requisitos completos, com o que ficou para o roadmap e por quê, estão em [`REQUISITOS.md`](REQUISITOS.md).
+Documentos do projeto:
+
+- [`ESTRATEGIA.md`](ESTRATEGIA.md): mercado, concorrentes, modelo de negócio, canvas, simulação e entrada no mercado.
+- [`AUDITORIA.md`](AUDITORIA.md): diagnóstico, o que mudou, testes executados, limitações e roadmap.
+- [`DESIGN.md`](DESIGN.md): tipografia, cores com contraste medido, tokens, componentes e referências.
+- [`ARQUITETURA.md`](ARQUITETURA.md): casos de uso, sequência, dados e telas.
+- [`REQUISITOS.md`](REQUISITOS.md): requisitos do MVP e o que ficou para depois.
 
 **Quem quer jogar (sozinho ou com um grupo incompleto)**
 
@@ -67,19 +73,37 @@ Os requisitos completos, com o que ficou para o roadmap e por quê, estão em [`
 
 **Quem recebe o convite**: abre o link, escreve o nome e toca em **Tô dentro**. Sem conta e sem app.
 
+## App instalável (PWA)
+
+O Fechou pode ser instalado na tela inicial e abre sem internet (os jogos só aparecem com conexão). No Android, o app oferece "Instalar". No iPhone: Compartilhar > Adicionar à Tela de Início.
+
+Para publicar uma versão que todos precisam receber, mude `VERSAO` no `sw.js`: quem estiver com o app aberto vê "Tem uma versão nova" e toca em Atualizar.
+
+## Testes
+
+```
+pip install playwright && playwright install chromium
+python3 tests/e2e.py   # fluxos de ponta a ponta, com backend simulado
+python3 tests/pwa.py   # manifest, service worker, offline e atualização
+```
+
+Os dados dos testes são fictícios.
+
 ## Roteiro da demo (40 segundos)
 
 1. Antes: cadastre o colega da plateia em **Jogadores** com o WhatsApp dele (vôlei de praia, nível 3, sábado à tarde ou noite).
 2. No palco, ligue **Ocultar nomes**: os nomes reais da base viram apelidos.
-3. **Abrir jogo com vagas**: grupo incompleto, vôlei de praia, nível 3, próximo sábado às 18h, preço real, **Jogo de teste**.
+3. **Marcar jogo**: **Privado** (assim o colega entra sem conta), arena, vôlei de praia, nível 3, próximo sábado às 18h, preço real, **Jogo de teste**.
 4. Aparecem os jogadores reais que combinam. Toque em **Convidar** no colega.
-5. Ele toca no link e em **Tô dentro**. No telão: **Fechou! Reserva gerada: R$ X**.
+5. Ele toca no link e em **Tô dentro**. No telão: **Fechou! R$ X de quadra para a arena**.
 
 A data do jogo precisa ser futura: um jogo que já passou não aceita confirmação.
 
 ## Privacidade
 
 - Só contas da equipe (coleção `admins`) leem os telefones dos jogadores. Quem abre um convite vê o jogo e o primeiro nome de quem confirmou.
+- O WhatsApp de quem organiza só aparece para quem entrou no jogo com conta. Jogo público pede conta para entrar.
+- O app não usa GPS e é para maiores de 18 anos. Detalhes na página **Privacidade e segurança** do app.
 - Os valores de `config.js` são públicos por natureza. Quem protege os dados são as regras de `firestore.rules`.
 
 ## Arquivos

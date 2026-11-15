@@ -107,7 +107,7 @@
   if (params.get("codigo")) store.set("config/equipe", { codigo: params.get("codigo"), criadoEm: 1 });
   if (params.has("compub")){
     store.set("jogos/pub1", { arena: "Arena Publica", esporte: "Vôlei de praia", nivel: 3, quando: "2026-11-21T18:00", total: 4, vagas: 3, valor: 100, situacao: "vago", teste: false, criadoEm: 5, donoUid: "u_dono", donoNome: "Dani", donoZap: "", origem: "jogador", visibilidade: "publico", cidade: "Araranguá", cidadeChave: "ararangua", tipoLocal: "privada" });
-    store.set("jogos/pub1/contato/dono", { zap: "5548911112222" });
+    store.set("jogos/pub1/contato/dono", { zap: "5548900000077" });
   }
   if (params.has("comperfil")) store.set("perfis/u_app", { nome: "Zé App", esportes: ["Vôlei de praia"], nivel: 3, horarios: ["Sábado à tarde ou noite"], cidade: "Araranguá", cidadeChave: "ararangua", whatsapp: "5548900000099", aceitaConvites: true, plano: "free", criadoEm: 1, atualizadoEm: 1 });
   if (params.has("comjogo")){

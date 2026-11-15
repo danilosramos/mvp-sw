@@ -59,3 +59,13 @@ Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap
 | Pontuação 1,2x para Premium | Depende de um sistema de pontos e ranking que ainda não existe. |
 | Cobrança do Premium e pagamento da quadra | Primeiro validar interesse (lista de espera) e preço. |
 | Chat, avaliação depois do jogo, perfil de professor, notificação, app nativo | Não ajudam a provar a hipótese neste fim de semana. |
+
+## Requisitos acrescentados em 15/11/2026
+
+- **R7. Tipo de local.** Todo jogo é em arena ou em quadra pública. Quadra pública não tem preço nem reserva, e o app diz isso. "Jogos abertos" filtra por tipo.
+- **R8. Conta em jogo público.** Para entrar em jogo público é preciso estar logado. Jogo privado por link aceita só o nome.
+- **R9. Contato protegido.** O WhatsApp de quem organiza só aparece para quem entrou no jogo com conta.
+- **R10. Jogo parecido.** Ao marcar no mesmo esporte, lugar e horário (até 1 hora) de um jogo aberto, o app oferece entrar nele.
+- **R11. App instalável.** Instala na tela inicial, abre sem internet com aviso, e atualiza quando a pessoa aceita.
+- **R12. Privacidade e segurança.** Página com o que é guardado, quem vê o quê, direitos, regra de 18+ e dicas para jogar com desconhecidos. O app não usa GPS.
+- **Honestidade:** o Fechou não reserva quadra nem cobra. Nenhuma tela diz o contrário.

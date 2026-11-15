@@ -140,3 +140,21 @@ flowchart TD
 | Check-in | cria com o nome | cria, e desiste do próprio | tudo |
 | Perfis e base (WhatsApp) | nada | só o próprio perfil | lê tudo |
 | Código do time | nada | usa para entrar | lê e troca |
+
+## Atualização de 15/11/2026
+
+- **Jogo** ganhou `tipoLocal` (`privada` ou `publica`). O campo `donoZap` ficou vazio: o WhatsApp de quem organiza mora em `jogos/{id}/contato/dono`.
+- **Contato:** lido só pelo dono, pelo time e por quem tem a confirmação `confirmacoes/{jogoId}_{uid}`.
+- **Confirmação com conta** tem id fixo `{jogoId}_{uid}`: uma por pessoa e por jogo. Jogo público só aceita confirmação com conta.
+- **PWA:** `manifest.webmanifest`, `sw.js` (rede primeiro para o app, cache primeiro para SDK e fontes; dados nunca em cache), `offline.html`, `icons/`.
+- **Nova tela:** Privacidade e segurança. A navegação fica na base da tela no celular.
+
+```mermaid
+flowchart LR
+  P[Página] -->|arquivos do app| SW[Service worker]
+  SW -->|rede primeiro| GH[GitHub Pages]
+  SW -->|sem rede| C[(Cache do app)]
+  P -->|SDK e fontes| SW
+  SW -->|cache primeiro| G[gstatic e Google Fonts]
+  P -->|dados e login, direto| FB[(Firestore e Auth)]
+```
