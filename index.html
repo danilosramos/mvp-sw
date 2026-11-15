@@ -9,57 +9,59 @@
 <meta property="og:description" content="Toque para ver o jogo e confirmar sua vaga.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 <script>window.backendPronto = new Promise(function(r){ window.__resolverBackend = r; });</script>
 <script src="config.js"></script>
 <script type="module" src="firebase.js"></script>
 <style>
 :root{
-  /* Layout: uma coluna de 560px com barra fixa no topo; placar em fonte condensada; cor por papel (ação, ok, atenção, WhatsApp). */
-  --bg:#EDF1F0;
+  /* Design system: cor por função. Laranja só em ação principal; azul-petróleo para navegação e confiança;
+     verde só para "fechou"; fundo areia. Uma coluna de 560px, cantos de 20px. */
+  --bg:#FFF8F0;
   --surface:#FFFFFF;
-  --ink:#0F2229;
-  --muted:#56676D;
-  --line:#D3DCDA;
-  --accent:#1B47C9;
-  --accent-ink:#FFFFFF;
-  --sand:#EADBB8;
-  --ok:#126B3B; --ok-bg:#D9F1E2;
-  --warn:#8A5300; --warn-bg:#FBEBCB;
+  --ink:#1E2A32;
+  --muted:#55646D;
+  --line:#EADFD2;
+  --accent:#0F5C6E; --accent-ink:#FFFFFF;
+  --cta:#FF6B35; --cta-ink:#1E2A32;
+  --sand:#FFE3B0;
+  --ok:#12733F; --ok-bg:#DDF5E8; --ok-fill:#2BB673;
+  --warn:#8A5300; --warn-bg:#FFEFC2;
   --zap:#0F7A43; --zap-ink:#FFFFFF;
   --danger:#B42318;
-  --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Outfit",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0A1418; --surface:#11212A; --ink:#E4EDEF; --muted:#97AAB0; --line:#24383F;
-    --accent:#8AA9FF; --accent-ink:#0A1418; --sand:#3D3523;
-    --ok:#6AD69A; --ok-bg:#123422; --warn:#F3B65E; --warn-bg:#3A2A0F;
+    --bg:#10181D; --surface:#18242B; --ink:#EEF3F5; --muted:#9DB0B8; --line:#2A3A43;
+    --accent:#7CCBDC; --accent-ink:#0B1418; --cta:#FF7A47; --cta-ink:#1E2A32; --sand:#4A3B1E;
+    --ok:#6FDCA6; --ok-bg:#123524; --ok-fill:#2BB673; --warn:#F5C261; --warn-bg:#3B2C0E;
     --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0A1418; --surface:#11212A; --ink:#E4EDEF; --muted:#97AAB0; --line:#24383F;
-  --accent:#8AA9FF; --accent-ink:#0A1418; --sand:#3D3523;
-  --ok:#6AD69A; --ok-bg:#123422; --warn:#F3B65E; --warn-bg:#3A2A0F;
-  --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
+  --bg:#10181D; --surface:#18242B; --ink:#EEF3F5; --muted:#9DB0B8; --line:#2A3A43;
+    --accent:#7CCBDC; --accent-ink:#0B1418; --cta:#FF7A47; --cta-ink:#1E2A32; --sand:#4A3B1E;
+    --ok:#6FDCA6; --ok-bg:#123524; --ok-fill:#2BB673; --warn:#F5C261; --warn-bg:#3B2C0E;
+    --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--accent)}
 p{margin:0}
-h1,h2{font-family:var(--font-display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0}
-h1{font-size:34px;line-height:1.02}
-h2{font-size:23px;line-height:1.1}
+h1,h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:32px;line-height:1.1}
+h2{font-size:20px;line-height:1.2}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-.brand{font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:.02em;color:var(--ink);text-decoration:none;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.brand{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--ink);text-decoration:none;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
 .brand small{font-family:var(--font-body);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
 nav{display:flex;gap:2px;flex-wrap:nowrap;justify-content:flex-end}
 nav a,nav button{font:600 14px var(--font-body);color:var(--muted);text-decoration:none;padding:8px 9px;border-radius:10px;border:0;background:none;cursor:pointer;min-height:38px;white-space:nowrap}
@@ -72,7 +74,7 @@ nav button[aria-pressed="true"]{color:var(--accent)}
 .wrap{max-width:560px;margin:0 auto;padding:16px 16px 56px;display:grid;gap:18px}
 .stack{display:grid;gap:18px}
 section{display:grid;gap:10px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 1px 2px rgba(30,42,50,.05)}
 .muted{color:var(--muted)}
 .note{color:var(--muted);font-size:14px}
 .back{font-weight:600;text-decoration:none;font-size:15px;justify-self:start}
@@ -84,18 +86,18 @@ section{display:grid;gap:10px}
 /* Números do painel */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;align-content:start}
-.tile.big{grid-column:1/-1;background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tile.big{grid-column:1/-1;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .tile .lbl{font-size:13px;font-weight:700;color:var(--muted)}
 .tile.big .lbl,.tile.big .sub{color:inherit;opacity:.78}
 .num{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
-.tile .num{font-size:36px}
-.tile.big .num{font-size:56px}
+.tile .num{font-size:30px}
+.tile.big .num{font-size:44px}
 .tile .sub{font-size:13px;color:var(--muted)}
 
 /* Botões e marcas */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px var(--font-body);text-decoration:none;cursor:pointer;text-align:center}
 .btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary{background:var(--cta);color:var(--cta-ink);border-color:var(--cta)}
 .btn.zap{background:var(--zap);color:var(--zap-ink);border-color:var(--zap)}
 .btn.block{width:100%}
 .btn.big{min-height:58px;font-size:20px}
@@ -109,6 +111,8 @@ section{display:grid;gap:10px}
 .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
 .chip.test{background:transparent;border-style:dashed}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.passos{margin:0;padding-left:22px;display:grid;gap:10px}
+.prova{font-size:15px;border-left:4px solid var(--cta);padding:2px 0 2px 12px}
 .codigo{font-family:var(--font-display);font-size:1.25em;letter-spacing:.12em;text-transform:uppercase}
 .filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .filtros .check{grid-column:1/-1}
@@ -122,19 +126,19 @@ section{display:grid;gap:10px}
 .g-title{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .g-sub{font-size:14px;color:var(--muted)}
 .g-count{display:grid;justify-items:end;gap:4px}
-.g-count .num{font-size:28px}
+.g-count .num{font-size:24px}
 .game .bar{grid-column:1/-1}
 .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .bar>span{display:block;width:0;height:100%;background:var(--warn);border-radius:99px;transition:width .5s ease}
-.bar.full>span{background:var(--ok)}
+.bar.full>span{background:var(--ok-fill)}
 
 /* Placar */
 .score-card{display:grid;gap:8px;text-align:center}
-.score{font-family:var(--font-display);font-weight:700;font-size:88px;line-height:.9;font-variant-numeric:tabular-nums}
-.score small{font-size:44px;color:var(--muted)}
+.score{font-family:var(--font-display);font-weight:800;font-size:68px;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:36px;color:var(--muted)}
 .score-lbl{font-weight:600;color:var(--muted)}
 .score-card .bar{height:12px}
-.status{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.1}
+.status{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1.1}
 .status.ok{color:var(--ok)}
 .status.warn{color:var(--warn)}
 .score-card.fechou{border-color:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
@@ -167,7 +171,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
 .seg input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
 .seg input:focus-visible+span,.chips-in input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
 .seg.cinco{grid-template-columns:repeat(5,1fr)}
-.seg.cinco span{text-align:center;font-family:var(--font-display);font-size:24px;padding:6px 0}
+.seg.cinco span{text-align:center;font-family:var(--font-display);font-size:22px;padding:8px 0}
 .nivel-txt{font-size:14px;color:var(--muted);margin-top:6px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:start;font-weight:600;font-size:15px;cursor:pointer}
@@ -198,7 +202,7 @@ details[open]>summary{margin-bottom:14px}
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#painel">Fechou <small>jogos com vaga</small></a>
+  <a class="brand" href="#painel">Fechou</a>
   <nav id="nav" aria-label="Seções"></nav>
 </header>
 <div id="aviso" class="aviso"></div>
@@ -541,21 +545,32 @@ function ligarLoginGoogle(btnId, erroId){
     S.conta.entrarGoogle().catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
   });
 }
-VIEWS.inicio = function(){
-  app.innerHTML = '<div class="card stack"><span class="kicker">Jogo com vaga</span><h1>Falta gente pro seu jogo?</h1>' +
-    "<p>Marque o jogo, diga quantos faltam e mande o link, ou deixe público no app. Quem combina com você faz check-in em um toque, e a quadra vira reserva.</p>" +
-    '<button class="btn primary block big" type="button" id="fl-google">Entrar com Google para marcar</button>' +
-    '<a class="btn ghost block" href="#jogos">Ver jogos abertos</a>' +
+VIEWS.inicio = function(v){
+  app.innerHTML = '<div class="card stack"><h1>Falta gente pro seu jogo?</h1>' +
+    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você entra em um toque, e a quadra vazia vira jogo.</p>" +
+    '<button class="btn primary block big" type="button" id="fl-google">Bora jogar</button>' +
     '<div id="fl-erro" class="banner" hidden></div>' +
-    '<p class="note">Recebeu um convite? Abra o link que veio no WhatsApp: para fazer check-in não precisa de conta.</p></div>' +
-    '<p class="note">É da equipe de uma arena? Entre com Google e use o código do time em “Meus jogos”.</p>';
+    '<p class="note">Entra com sua conta Google. Recebeu um convite? Abra o link do WhatsApp: para entrar no jogo não precisa de conta.</p></div>' +
+    '<section id="in-jogos" hidden><div class="sec-head"><h2>Tem vaga agora</h2><a href="#jogos">Ver todos</a></div><div class="list" id="in-lista"></div></section>' +
+    '<section class="card stack"><h2>Como funciona</h2><ol class="passos">' +
+      "<li><b>Marque:</b> esporte, nível, dia e arena. Leva 1 minuto.</li>" +
+      "<li><b>Mande o link</b> nos seus grupos ou deixe público no app.</li>" +
+      "<li><b>Fechou:</b> quem combina entra, e você não joga sozinho.</li></ol></section>" +
+    '<p class="prova">Ouvimos 20 jogadores da região: <b>15 tiveram jogo que não aconteceu por falta de gente</b> no último mês, e 11 dizem que não conhecem gente ou lugares para jogar. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
+    '<p class="note">É de uma arena? Entre e use o código do time em “Meus jogos”.</p>';
   ligarLoginGoogle("fl-google", "fl-erro");
+  v.update = function(){
+    var abertos = S.jogos.filter(function(g){ return g.visibilidade === "publico" && !g.teste && !jaPassou(g) && !estadoJogo(g).fechado; })
+      .sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); }).slice(0, 3);
+    $("#in-jogos").hidden = !abertos.length;
+    $("#in-lista").innerHTML = abertos.map(cardPublico).join("");
+  };
 };
 VIEWS.meus = function(v){
   var u = S.usuario || {};
   app.innerHTML =
     "<h1>Meus jogos</h1>" +
-    '<div class="row-btns"><a class="btn primary big" href="#novo">Marcar jogo</a><a class="btn ghost big" href="#jogos">Ver jogos abertos</a></div>' +
+    '<div class="row-btns"><a class="btn primary big" href="#novo">Marcar jogo</a><a class="btn ghost big" href="#jogos">Achar um jogo</a></div>' +
     '<section><h2>Marquei</h2><div class="list" id="m-lista"></div></section>' +
     '<section><h2>Vou jogar</h2><div class="list" id="m-vou"></div></section>' +
     '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
@@ -564,7 +579,7 @@ VIEWS.meus = function(v){
         '<div id="fc-erro" class="banner" hidden></div>' +
         '<button class="btn primary block" type="submit" id="fc-entrar">Entrar no time</button>' +
       "</form></details>" +
-    '<p class="note">Plano Free · <a href="#premium">Conhecer o Premium</a> · Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
+    '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   $("#f-codigo").addEventListener("submit", function(ev){
     ev.preventDefault();
     var cod = $("#fc-codigo").value.toUpperCase().replace(/[^A-Z0-9]/g, ""), erroEl = $("#fc-erro"), btn = $("#fc-entrar");
