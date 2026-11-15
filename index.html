@@ -491,7 +491,7 @@ function montar(){
       if (nome === "jogo"){ location.replace("#convite-" + r.id); return; }
       nome = "inicio";
     } else if (!S.perfilCarregado) nome = "carregando";
-    else if (!S.admin && !S.perfil && nome !== "perfil"){ S.depoisDoPerfil = location.hash || "#painel"; nome = "perfil"; }
+    else if (!S.admin && !S.perfil && nome !== "perfil" && lsGet("pulouPerfil") !== "1"){ S.depoisDoPerfil = location.hash || "#painel"; nome = "perfil"; }
     else if (!S.admin && (nome === "painel" || nome === "jogadores")) nome = "meus";
   }
   V = { nome: nome, id: r.id, rota: r.nome };
@@ -571,6 +571,7 @@ VIEWS.meus = function(v){
   app.innerHTML =
     "<h1>Meus jogos</h1>" +
     '<div class="row-btns"><a class="btn primary big" href="#novo">Marcar jogo</a><a class="btn ghost big" href="#jogos">Achar um jogo</a></div>' +
+    (S.perfil ? "" : '<p class="prova">Complete seu <a href="#perfil">perfil</a> para ser chamado para jogos do seu nível.</p>') +
     '<section><h2>Marquei</h2><div class="list" id="m-lista"></div></section>' +
     '<section><h2>Vou jogar</h2><div class="list" id="m-vou"></div></section>' +
     '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
@@ -627,7 +628,10 @@ VIEWS.perfil = function(){
       '<div id="fp-erro" class="banner" hidden></div>' +
       '<button class="btn primary block big" type="submit" id="fp-salvar">' + (novo ? "Salvar e continuar" : "Salvar perfil") + "</button>" +
     "</form>" +
-    (novo ? "" : '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>');
+    '<p class="note">Usamos esses dados só para montar jogos. Só a equipe do Fechou vê seu WhatsApp, e você pode apagar o perfil quando quiser.</p>' +
+    (novo && !S.admin ? '<p><button type="button" class="link" data-acao="pular-perfil">Preencher depois</button></p>'
+      : '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button>' +
+        (S.perfil ? ' · <button type="button" class="link" data-acao="apagar-perfil">Apagar meu perfil</button>' : "") + "</p>");
   var f = $("#f-perfil");
   f.addEventListener("change", function(ev){ if (ev.target.name === "pniv") setText("fp-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]); });
   f.addEventListener("submit", function(ev){
@@ -912,7 +916,7 @@ function esqueletoJogo(equipe){
 }
 function linhaPreco(g, editar){
   var pp = porPessoa(g);
-  return (Number(g.valor) > 0 ? "Quadra " + esc(brl(g.valor)) + (pp ? " · " + esc(brl(pp)) + " por pessoa" : "") : '<span class="muted">Sem preço informado.</span>') +
+  return (Number(g.valor) > 0 ? "Quadra " + esc(brl(g.valor)) + (pp ? " · " + esc(brl(pp)) + " por pessoa" : "") : (editar ? '<span class="muted">Sem preço informado.</span>' : "")) +
     (editar ? ' <button type="button" class="link" data-acao="preco">' + (Number(g.valor) > 0 ? "mudar" : "informar preço") + "</button>" : "");
 }
 function rowMatch(g, x, ctx){
@@ -1010,11 +1014,21 @@ VIEWS.jogo = function(v){
 };
 
 /* Convite (visão do jogador) */
+function minhaConf(g){
+  var minha = lsGet("conf:" + g.id), lista = confsDo(g.id);
+  for (var i = 0; i < lista.length; i++){
+    var c = lista[i];
+    if ((minha && c.id === minha) || (S.usuario && c.uid === S.usuario.uid)) return { conf: c, pos: i };
+  }
+  return null;
+}
 function pintarAcao(v, g, modo){
   var el = $("#cv-acao");
-  if (modo === "form"){
-    el.innerHTML = '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc((S.perfil && S.perfil.nome) || lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
-      '<button class="btn primary block big" type="submit" id="fc-btn">Tô dentro (check-in)</button>' +
+  if (modo === "form" || modo === "espera"){
+    var espera = modo === "espera";
+    el.innerHTML = (espera ? '<h2>Esse jogo fechou</h2><p>Entre na lista de espera: se alguém desistir, a vaga é sua, na ordem da lista.</p>' : "") +
+      '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc((S.perfil && S.perfil.nome) || lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
+      '<button class="btn primary block big" type="submit" id="fc-btn">' + (espera ? "Entrar na lista de espera" : "Tô dentro") + "</button>" +
       '<p class="note">Sem cadastro: é só o seu nome.</p></form>';
     $("#f-conf").addEventListener("submit", function(ev){
       ev.preventDefault();
@@ -1030,17 +1044,25 @@ function pintarAcao(v, g, modo){
         v.update();
       });
     });
-  } else if (modo === "dentro"){
-    var quem = g.donoNome || "quem organizou";
-    el.innerHTML = '<div class="stack"><div class="status ok">Você está no jogo!</div>' +
+  } else if (modo.indexOf("dentro") === 0){
+    var quem = g.donoNome || "quem organizou", m = minhaConf(g), e = estadoJogo(g);
+    var naEspera = !!m && m.pos >= e.vagas, meu = !!m && !!S.usuario && m.conf.uid === S.usuario.uid;
+    el.innerHTML = '<div class="stack">' +
+      (naEspera
+        ? '<div class="status warn">Você está na lista de espera</div><p>Posição ' + (m.pos - e.vagas + 1) + ". Se alguém desistir, você entra no jogo e esta tela avisa.</p>"
+        : '<div class="status ok">Você está no jogo!</div>') +
       (g.donoZap
-        ? "<p>Combine os detalhes com " + esc(quem) + " pelo WhatsApp. Se mudar de ideia, avise por lá.</p>" +
-          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(g.donoZap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! Confirmei no jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
-        : "<p>Combine os detalhes no grupo onde você recebeu o convite. Se mudar de ideia, avise por lá.</p>") +
+        ? (naEspera ? "" : "<p>Combine os detalhes com " + esc(quem) + " pelo WhatsApp.</p>") +
+          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(g.donoZap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! " + (naEspera ? "Entrei na lista de espera do" : "Confirmei no") + " jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
+        : (naEspera ? "" : "<p>Combine os detalhes no grupo onde você recebeu o convite.</p>")) +
+      (meu
+        ? '<button class="btn ghost block" type="button" data-acao="desistir" data-conf="' + esc(m.conf.id) + '" data-jogo="' + esc(g.id) + '">Não vou mais (libera a vaga)</button>'
+        : '<p class="note">Não vai mais? Avise ' + esc(quem) + " o quanto antes, para a vaga ir para outra pessoa.</p>") +
+      (S.usuario ? "" : '<a class="btn ghost block" href="#painel">Quero ser chamado para os próximos jogos</a>') +
       "</div>";
-  } else if (modo === "fechado" || modo === "passou"){
-    el.innerHTML = '<div class="stack"><h2>' + (modo === "fechado" ? "Esse jogo fechou" : "Esse jogo já passou") + "</h2><p>Quer ser chamado para o próximo jogo do seu nível e horário?</p>" +
-      '<a class="btn primary block" href="' + TALLY_URL + '" target="_blank" rel="noopener">Quero ser chamado</a></div>';
+  } else if (modo === "passou"){
+    el.innerHTML = '<div class="stack"><h2>Esse jogo já passou</h2><p>Quer achar outro jogo do seu nível?</p>' +
+      '<a class="btn primary block" href="#jogos">Ver jogos abertos</a></div>';
   } else {
     el.innerHTML = '<div class="stack"><h2>Confirme pelo WhatsApp</h2><p>Por aqui não deu. Responda “tô dentro” na mensagem de quem te convidou.</p></div>';
   }
@@ -1082,14 +1104,13 @@ VIEWS.convite = function(v){
       ? '<div class="score">Fechou!</div><div class="score-lbl">' + e.vagas + " de " + e.vagas + " vagas preenchidas</div>"
       : '<div class="score">' + e.faltam + '</div><div class="score-lbl">' + plural(e.faltam, "vaga para fechar", "vagas para fechar") + "</div>") +
       '<div class="bar' + (e.fechado ? " full" : "") + '"><span></span></div>' +
-      (nomes.length ? '<div class="muted">Já confirmaram: ' + esc(nomes.join(", ")) + "</div>" : "");
+      (nomes.length ? '<div class="muted">Já confirmaram: ' + esc(nomes.slice(0, e.vagas).join(", ")) + "</div>" : "") +
+      (e.n > e.vagas ? '<div class="muted">' + (e.n - e.vagas) + " na lista de espera</div>" : "");
     barra($("span", sc), v.pctAntes == null ? pct : v.pctAntes, pct);
     if (v.fechadoAntes === false && e.fechado){ festa(); sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
     v.fechadoAntes = e.fechado; v.pctAntes = pct;
-    var minha = lsGet("conf:" + g.id);
-    var dentro = (!!minha && S.confs.some(function(c){ return c.id === minha; })) ||
-      (!!S.usuario && S.confs.some(function(c){ return c.jogoId === g.id && c.uid === S.usuario.uid; }));
-    var modo = v.semPermissao ? "semPermissao" : dentro ? "dentro" : e.fechado ? "fechado" : jaPassou(g) ? "passou" : "form";
+    var mc = minhaConf(g);
+    var modo = v.semPermissao ? "semPermissao" : mc ? "dentro-" + (mc.pos >= e.vagas ? "espera-" + mc.pos : "ok") + (S.usuario ? "-u" : "") : jaPassou(g) ? "passou" : e.fechado ? "espera" : "form";
     if (modo !== v.modo){ v.modo = modo; pintarAcao(v, g, modo); }
   };
 };
@@ -1217,6 +1238,23 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "desistir"){
+    if (!armar(t, "Toque de novo para sair do jogo")) return;
+    t.disabled = true;
+    var cdes = t.getAttribute("data-conf"), jdes = t.getAttribute("data-jogo");
+    gravar(function(){ return S.db.doc("confirmacoes/" + cdes).delete(); }).then(function(r){
+      if (r.ok){ lsSet("conf:" + jdes, null); toast("Você saiu. A vaga foi liberada."); atualizar(); } else t.disabled = false;
+    });
+  } else if (a === "apagar-perfil"){
+    if (!S.usuario || !armar(t, "Toque de novo para apagar")) return;
+    t.disabled = true;
+    gravar(function(){ return S.db.doc("perfis/" + S.usuario.uid).delete(); }).then(function(r){
+      if (r.ok){ lsSet("pulouPerfil", "1"); toast("Perfil apagado"); location.hash = "painel"; } else t.disabled = false;
+    });
+  } else if (a === "pular-perfil"){
+    lsSet("pulouPerfil", "1");
+    var dest = S.depoisDoPerfil && S.depoisDoPerfil !== "#perfil" ? S.depoisDoPerfil : "#painel"; S.depoisDoPerfil = "";
+    if (location.hash === dest) montar(); else location.hash = dest.replace(/^#/, "");
   } else if (a === "quero-premium"){
     if (!S.usuario) return;
     t.disabled = true;

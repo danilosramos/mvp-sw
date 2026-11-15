@@ -150,7 +150,9 @@ service cloud.firestore {
       allow read: if true;
       allow create: if ehEquipe() || confirmacaoPublicaValida() || confirmacaoDoDonoValida();
       allow update: if ehEquipe();
-      allow delete: if ehEquipe() || ehDonoDoJogo(resource.data.jogoId);
+      // Quem fez check-in logado pode desistir e liberar a vaga.
+      allow delete: if ehEquipe() || ehDonoDoJogo(resource.data.jogoId)
+        || (request.auth != null && resource.data.get('uid', '') == request.auth.uid);
     }
   }
 }
