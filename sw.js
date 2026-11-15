@@ -1,13 +1,15 @@
-// Service worker do Fechou.
+// Service worker da Energia Boa.
 // - Arquivos do app: rede primeiro, com cópia em cache para abrir sem internet. Assim versão antiga não fica presa.
-// - SDK do Firebase e fontes (endereços com versão): cache primeiro.
+// - SDK do Firebase (endereço com versão): cache primeiro. As fontes são do próprio app e entram na cópia do app.
 // - Dados (Firestore, login) nunca passam por aqui: jogos e vagas só valem ao vivo.
 // Para forçar todo mundo a atualizar, mude VERSAO.
-const VERSAO = "v1";
-const CACHE = "fechou-" + VERSAO;
+const VERSAO = "v2";
+const CACHE = "energiaboa-" + VERSAO;
 const SHELL = [
   "./", "index.html", "config.js", "firebase.js", "manifest.webmanifest", "offline.html",
-  "icons/favicon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
+  "icons/favicon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
+  "fonts/barlow-latin-400-normal.woff2", "fonts/barlow-latin-600-normal.woff2", "fonts/barlow-latin-700-normal.woff2",
+  "fonts/barlow-condensed-latin-700-normal.woff2", "fonts/barlow-condensed-latin-800-italic.woff2"
 ];
 
 self.addEventListener("install", (ev) => {
@@ -17,7 +19,7 @@ self.addEventListener("install", (ev) => {
 self.addEventListener("activate", (ev) => {
   ev.waitUntil(
     caches.keys()
-      .then((ks) => Promise.all(ks.filter((k) => k.startsWith("fechou-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => (k.startsWith("fechou-") || k.startsWith("energiaboa-")) && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -68,6 +70,5 @@ self.addEventListener("fetch", (ev) => {
     return;
   }
   const sdk = url.hostname === "www.gstatic.com" && url.pathname.startsWith("/firebasejs/");
-  const fonte = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
-  if (sdk || fonte) ev.respondWith(cachePrimeiro(req));
+  if (sdk) ev.respondWith(cachePrimeiro(req));
 });

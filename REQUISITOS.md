@@ -1,4 +1,6 @@
-# Requisitos do Fechou (MVP do Startup Weekend)
+# Requisitos da Energia Boa (MVP do Startup Weekend)
+
+O app se chamava Fechou até 15/11/2026. "Fechou!" continua sendo o estado do jogo completo.
 
 Hipótese que o MVP testa: **gente sem parceiro vira reserva num horário que a arena não vende.**
 Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap, com o motivo.
@@ -7,7 +9,7 @@ Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap
 
 ### R1. Perfil de jogador
 
-- Entrar com Google. No primeiro acesso, a pessoa preenche nome, cidade, esportes que pratica, nível no esporte principal (1 a 5), quando pode jogar (7 faixas) e WhatsApp (opcional).
+- Entrar com Google. No primeiro acesso, a pessoa preenche nome, cidade, esportes que pratica, nível no esporte principal (Iniciante, Intermediário ou Avançado, sem números), quando pode jogar (7 faixas) e WhatsApp (opcional).
 - "Quero ser chamado para jogos que combinam comigo" só vale com WhatsApp, e só o time vê o número.
 - Editável em **Perfil**, onde aparece o plano atual (Free).
 - **Aceite:** sem perfil a pessoa não marca jogo; outro jogador não consegue ler o perfil de ninguém (regra do banco).
@@ -27,21 +29,30 @@ Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap
 - Depois do check-in, um botão abre o WhatsApp de quem organizou, se informado.
 - Quem marcou vê os confirmados ao vivo, adiciona quem respondeu no WhatsApp e pode apagar o jogo. Quando completa: **Fechou! Reserva gerada**.
 
-### R4. Jogos abertos com filtros
+### R4. Procurar jogos, com filtros
 
 - Lista de jogos públicos e futuros. Jogos de teste não aparecem.
-- Filtros: quando (hoje, amanhã, fim de semana, próximos 7 dias, qualquer data), cidade, esporte, nível (até 1 de diferença) e só com vaga. A cidade do perfil vem marcada.
+- **Procurar** é o primeiro destino da navegação e o botão amarelo no início e em Meus jogos (uma mentora não achou o antigo "Abertos").
+- À vista: esporte, **dia da semana** (seg a dom, mais de um) e **período do dia** (manhã 5h–12h, tarde 12h–18h, noite a partir das 18h).
+- Em "Mais filtros": quando (qualquer data, hoje, amanhã, próximos 7 ou 30 dias), cidade, nível (mesmo nível) e local (arena ou quadra pública), e só com vaga. A cidade do perfil vem marcada.
+- O que está filtrado aparece numa frase, com "Limpar filtros".
 - Abre sem login, para quem recebeu um convite conhecer outros jogos.
+
+### R4b. Níveis
+
+- Três níveis com nome: **Iniciante** (começou agora ou joga por diversão), **Intermediário** (joga toda semana) e **Avançado** (joga torneio ou dá aula).
+- O banco guarda número (1, 3 e 5), então as regras do Firestore não mudaram. Respostas antigas de 1 a 5 continuam valendo: 1 e 2 contam como iniciante, 3 como intermediário, 4 e 5 como avançado.
+- **Quem combina:** mesmo nível e horário que a pessoa marcou. Nível vizinho ou outro horário aparece como "quase". Iniciante e avançado não se cruzam.
 
 ### R5. Time da arena (concierge)
 
 - Entra com o código do time. Vê todos os jogos, públicos e privados, com quem marcou.
-- **Quem combina** junta a base do formulário e os perfis do app que aceitaram convite, por esporte, nível, horário e cidade. O convite sai pronto no WhatsApp.
+- **Quem combina** junta a base do formulário e os perfis do app que aceitaram convite, por esporte, nível (regra em R4b), horário e cidade. O convite sai pronto no WhatsApp.
 - Painel: reservas geradas (R$), jogos que fecharam, vagas preenchidas, jogadores na base, jogos abertos e lista de espera do Premium. Jogo de teste fica fora dos números.
 
 ### R6. Premium como lista de espera
 
-- Página **Fechou Premium (em breve)** com os benefícios planejados e o botão **Quero o Premium**. Ninguém é cobrado.
+- Página **Energia Boa Premium (em breve)** com os benefícios planejados e o botão **Quero o Premium**. Ninguém é cobrado.
 - O painel do time mostra quantos pediram: é a evidência de interesse em pagar.
 
 ## Requisitos não funcionais
@@ -55,7 +66,7 @@ Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap
 
 | Item | Por que espera |
 |---|---|
-| Prioridade de 15 minutos para Premium | Com poucos usuários, segurar o jogo 15 minutos atrasa o preenchimento, justamente a dor que o Fechou resolve. Ligar quando houver volume de jogos por cidade. |
+| Prioridade de 15 minutos para Premium | Com poucos usuários, segurar o jogo 15 minutos atrasa o preenchimento, justamente a dor que a Energia Boa resolve. Ligar quando houver volume de jogos por cidade. |
 | Pontuação 1,2x para Premium | Depende de um sistema de pontos e ranking que ainda não existe. |
 | Cobrança do Premium e pagamento da quadra | Primeiro validar interesse (lista de espera) e preço. |
 | Chat, avaliação depois do jogo, perfil de professor, notificação, app nativo | Não ajudam a provar a hipótese neste fim de semana. |
@@ -68,4 +79,4 @@ Cada requisito abaixo existe para gerar essa evidência. O resto fica no roadmap
 - **R10. Jogo parecido.** Ao marcar no mesmo esporte, lugar e horário (até 1 hora) de um jogo aberto, o app oferece entrar nele.
 - **R11. App instalável.** Instala na tela inicial, abre sem internet com aviso, e atualiza quando a pessoa aceita.
 - **R12. Privacidade e segurança.** Página com o que é guardado, quem vê o quê, direitos, regra de 18+ e dicas para jogar com desconhecidos. O app não usa GPS.
-- **Honestidade:** o Fechou não reserva quadra nem cobra. Nenhuma tela diz o contrário.
+- **Honestidade:** a Energia Boa não reserva quadra nem cobra. Nenhuma tela diz o contrário.

@@ -1,10 +1,10 @@
-# Fechou
+# Energia Boa
 
-Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026).
+Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026). Antes se chamava Fechou; o visual segue o [design system](DESIGN.md).
 
 **Hipótese:** gente sem parceiro vira reserva num horário que a arena não vende.
 
-Quem quer jogar marca o jogo (sozinho ou com um grupo incompleto), e a arena ou o time também abrem horários vagos. O app mostra quem da base combina: mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app. Quando completa, aparece **Fechou! Reserva gerada: R$ X**.
+Quem quer jogar marca o jogo (sozinho ou com um grupo incompleto), e a arena ou o time também abrem horários vagos. Quem quer entrar num jogo toca em **Procurar** e filtra por esporte, dia da semana e período do dia. O app mostra quem da base combina: mesmo esporte, mesmo nível (Iniciante, Intermediário ou Avançado) e horário que a pessoa marcou. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app. Quando completa, aparece **Fechou! Reserva gerada: R$ X**.
 
 - App: https://danilosramos.github.io/mvp-sw/
 - Convite de um jogo: `https://danilosramos.github.io/mvp-sw/#convite-<id>`
@@ -75,7 +75,7 @@ Documentos do projeto:
 
 ## App instalável (PWA)
 
-O Fechou pode ser instalado na tela inicial e abre sem internet (os jogos só aparecem com conexão). No Android, o app oferece "Instalar". No iPhone: Compartilhar > Adicionar à Tela de Início.
+A Energia Boa pode ser instalada na tela inicial e abre sem internet (os jogos só aparecem com conexão). No Android, o app oferece "Instalar". No iPhone: Compartilhar > Adicionar à Tela de Início.
 
 Para publicar uma versão que todos precisam receber, mude `VERSAO` no `sw.js`: quem estiver com o app aberto vê "Tem uma versão nova" e toca em Atualizar.
 

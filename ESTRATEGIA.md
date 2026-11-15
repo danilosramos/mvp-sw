@@ -1,4 +1,4 @@
-# Estratégia do Fechou: mercado, modelo de negócio e entrada
+# Estratégia da Energia Boa: mercado, modelo de negócio e entrada
 
 Pesquisa feita em 15/11/2026. Tudo que é número de terceiros tem fonte no fim. Tudo que é premissa nossa está marcado como premissa.
 
@@ -39,7 +39,7 @@ Três leituras:
 1. **Reserva e gestão de arena é um mercado ocupado.** Entrar como "mais um sistema de reserva" é brigar com quem já tem milhares de quadras.
 2. **Quadra pública com agenda já é serviço das prefeituras** nas cidades que têm isso. Vender agenda para prefeitura é concorrer com o sistema delas e depender de licitação.
 3. **A camada de gente está em disputa, e ninguém venceu.** Kourt (partidas em quadra pública e privada), MatchPoint (adversário por nível em raquete) e Agendei Quadras (partidas abertas anunciadas) estão atrás da mesma coisa. A tese "público + privado + partidas" **não é exclusiva nossa**: o Kourt já a descreve no próprio site.
-4. **O que sobra para o Fechou é execução local, não funcionalidade:** entrar no jogo por um link, sem instalar app; começar por vôlei de praia e areia em cidades pequenas do sul de Santa Catarina, onde nenhum deles aparece; e fechar os primeiros jogos na mão. Marketplace local se ganha por densidade em cada cidade, e quem chega primeiro com jogos cheios fica.
+4. **O que sobra para a Energia Boa é execução local, não funcionalidade:** entrar no jogo por um link, sem instalar app; começar por vôlei de praia e areia em cidades pequenas do sul de Santa Catarina, onde nenhum deles aparece; e fechar os primeiros jogos na mão. Marketplace local se ganha por densidade em cada cidade, e quem chega primeiro com jogos cheios fica.
 
 ## 2. A oportunidade em quadra pública é real?
 
@@ -56,13 +56,13 @@ Por isso o app trata os dois tipos de lugar de forma honesta: em quadra pública
 | A. Marketplace de partidas e quadras | É o produto de entrada, mas sozinho não tem receita enquanto não processar pagamento. | Base do produto |
 | B. SaaS de gestão para arenas | Mercado ocupado por quem tem anos de produto. | Não entrar |
 | C. Gestão e descoberta de quadras públicas | Bom para rede, sem receita, e a agenda é da prefeitura. | Só como aquisição |
-| **D. Híbrido B2B2C** | Jogador grátis; arena paga pelo que o Fechou gera a mais. | **Recomendado** |
+| **D. Híbrido B2B2C** | Jogador grátis; arena paga pelo que a Energia Boa gera a mais. | **Recomendado** |
 | E. Parceria institucional | Ciclo de venda longo e dependente de edital. Universidades são mais ágeis que prefeituras. | Depois, como distribuição |
 | F. Freemium do jogador | Só faz sentido com volume. Prioridade sobre vagas atrapalha a liquidez no começo. | Depois |
 
 ## 4. Modelo recomendado: híbrido B2B2C, a arena paga por jogo fechado
 
-**Frase:** o Fechou não reserva quadra; ele enche o jogo. O jogador usa de graça, em quadra pública ou arena. A arena paga quando o Fechou fecha um jogo num horário que estava vazio.
+**Frase:** a Energia Boa não reserva quadra; ela enche o jogo. O jogador usa de graça, em quadra pública ou arena. A arena paga quando a Energia Boa fecha um jogo num horário que estava vazio.
 
 **Por que este:**
 - É a única hipótese de receita com evidência nossa: uma arena contou que nem anuncia o horário das 18h, e outra perde 1 ou 2 de cada 10 jogos em cima da hora.
@@ -95,7 +95,7 @@ Nada é cobrado em quadra pública.
 
 **Premissas, todas a validar. Nenhuma é dado de mercado.**
 - Preço médio da hora de quadra: R$ 100. Ainda não temos o preço real das arenas.
-- Taxa do Fechou: 10% da quadra por jogo fechado, ou R$ 10.
+- Taxa da Energia Boa: 10% da quadra por jogo fechado, ou R$ 10.
 - Plano Arena: R$ 149 por mês.
 - Custos mensais fixos: R$ 350 de infraestrutura e mensagens em todos os cenários; R$ 2.500 de uma pessoa de operação em meio período nos cenários base e otimista.
 

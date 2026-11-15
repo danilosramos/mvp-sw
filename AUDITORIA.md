@@ -1,4 +1,4 @@
-# Auditoria do Fechou e o que mudou (15/11/2026)
+# Auditoria da Energia Boa (antes Fechou) e o que mudou (15/11/2026)
 
 ## 1. Diagnóstico
 
@@ -79,7 +79,7 @@
 
 | Tema | Limite hoje | O que resolve |
 |---|---|---|
-| Reserva de quadra | O Fechou não reserva. O horário é combinado com a arena. | Integração com o sistema da arena ou acordo direto. |
+| Reserva de quadra | A Energia Boa não reserva. O horário é combinado com a arena. | Integração com o sistema da arena ou acordo direto. |
 | Pagamento e sinal antifuro | Não existe. | Meio de pagamento (Pix) e servidor. |
 | Avisos (vaga abriu, jogo fechou) | Só com o app aberto. | Notificações push ou WhatsApp, com servidor. |
 | Check-ins falsos | Possíveis em jogo privado. | Firebase App Check e limite por servidor. |

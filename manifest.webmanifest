@@ -1,7 +1,7 @@
 {
-  "name": "Fechou: jogos com vaga",
-  "short_name": "Fechou",
-  "description": "Marque um jogo, diga quantos faltam e ache quem joga com você, na quadra pública ou na arena.",
+  "name": "Energia Boa: jogos com vaga",
+  "short_name": "Energia Boa",
+  "description": "Ache um jogo com vaga ou complete o seu: vôlei de praia, futevôlei, beach tennis, padel e mais, na arena ou na quadra pública.",
   "lang": "pt-BR",
   "dir": "ltr",
   "id": "./",
@@ -9,8 +9,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FFF8F0",
-  "theme_color": "#0F5C6E",
+  "background_color": "#F3F5FA",
+  "theme_color": "#1B4FE0",
   "categories": ["sports", "social"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
@@ -18,7 +18,7 @@
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Marcar jogo", "url": "./#novo", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Jogos abertos", "url": "./#jogos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Procurar jogos", "url": "./#jogos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Marcar jogo", "url": "./#novo", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

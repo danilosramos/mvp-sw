@@ -119,6 +119,18 @@
     store.set("jogos/g1", { arena: "Arena Teste", esporte: "Vôlei de praia", nivel: 3, quando: "2026-11-21T18:00", total: 4, vagas: 2, valor: 100, situacao: "cancelar", teste: true, criadoEm: 9 });
     store.set("confirmacoes/c1", { jogoId: "g1", nome: "Hotel", via: "whatsapp", criadoEm: 10 });
   }
+  if (params.has("vitrine")){
+    // Jogos fictícios só para revisar o visual (screenshots). Datas relativas a hoje.
+    var quando = function(nDias, h){ var d = new Date(); d.setDate(d.getDate() + nDias); var p2 = function(n){ return String(n).padStart(2, "0"); }; return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + "T" + p2(h) + ":00"; };
+    var base = { valor: null, situacao: "vago", teste: false, criadoEm: 1, donoZap: "", origem: "jogador", visibilidade: "publico", tipoLocal: "privada" };
+    [["v1", "Vôlei de praia", 3, quando(1, 19), "Reis D'arena", "Araranguá", 4, 2, "Dani", "u_d1"],
+     ["v2", "Futevôlei", 5, quando(2, 18), "Arena 421", "Araranguá", 4, 1, "Léo", "u_d2"],
+     ["v3", "Beach tennis", 1, quando(4, 9), "Arena BT", "Criciúma", 4, 3, "Bia", "u_d3"],
+     ["v4", "Vôlei de praia", 1, quando(5, 16), "Praia do Arroio", "Balneário Arroio do Silva", 4, 2, "Malu", "u_d4"]].forEach(function(x){
+      store.set("jogos/" + x[0], Object.assign({}, base, { esporte: x[1], nivel: x[2], quando: x[3], arena: x[4], cidade: x[5], cidadeChave: x[5].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(), total: x[6], vagas: x[7], donoNome: x[8], donoUid: x[9], tipoLocal: x[0] === "v4" ? "publica" : "privada" }));
+    });
+    store.set("confirmacoes/vc1", { jogoId: "v1", nome: "Rafa", via: "link", criadoEm: 2 });
+  }
   window.__store = store;
   window.__resolverBackend({ db: db, conta: conta });
 })();

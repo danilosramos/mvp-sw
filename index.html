@@ -3,240 +3,308 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0F5C6E">
+<meta name="theme-color" content="#1B4FE0">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Fechou">
+<meta name="apple-mobile-web-app-title" content="Energia Boa">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<title>Fechou</title>
-<meta name="description" content="Jogos com vaga: a arena abre um horário, quem combina recebe o convite no WhatsApp e confirma em um toque.">
-<meta property="og:title" content="Fechou: jogo com vaga">
+<title>Energia Boa</title>
+<meta name="description" content="Energia Boa: ache um jogo com vaga ou complete o seu. Vôlei de praia, futevôlei, beach tennis, padel e mais.">
+<meta property="og:title" content="Energia Boa: jogo com vaga">
 <meta property="og:description" content="Toque para ver o jogo e confirmar sua vaga.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script>window.backendPronto = new Promise(function(r){ window.__resolverBackend = r; });</script>
 <script src="config.js"></script>
 <script type="module" src="firebase.js"></script>
 <style>
+@font-face{font-family:"Barlow";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:italic;font-weight:800;font-display:swap;src:url(fonts/barlow-condensed-latin-800-italic.woff2) format("woff2")}
 :root{
-  /* Design system: cor por função. Laranja só em ação principal; azul-petróleo para navegação e confiança;
-     verde só para "fechou"; fundo areia. Uma coluna de 560px, cantos de 20px. */
-  --bg:#FFF8F0;
-  --surface:#FFFFFF;
-  --ink:#1E2A32;
-  --muted:#55646D;
-  --line:#EADFD2;
-  --accent:#0F5C6E; --accent-ink:#FFFFFF;
-  --cta:#FF6B35; --cta-ink:#1E2A32;
-  --sand:#FFE3B0;
-  --ok:#12733F; --ok-bg:#DDF5E8; --ok-fill:#2BB673;
-  --warn:#8A5300; --warn-bg:#FFEFC2;
+  /* Energia Boa: a quadra de areia vista de cima. Cobalto da fita que marca a quadra, sol, areia e o placar.
+     Sol (amarelo) só na ação principal e nos números do placar. Cobalto na marca, navegação, links e seleção.
+     Areia só na quadra do início e no canhoto da data. Verde só quando o jogo fecha. Detalhes em DESIGN.md. */
+  --bg:#F3F5FA; --surface:#FFFFFF; --ink:#0E1B3D; --muted:#4A5675;
+  --line:#DCE2EE; --line-forte:#7C88A8; --trilho:#E3E8F3;
+  --accent:#1B4FE0; --accent-ink:#FFFFFF; --accent-tint:#E9EFFF;
+  --cta:#FFC928; --cta-ink:#0E1B3D; --cta-hover:#FFB800;
+  --areia:#F1DDAE; --areia-ink:#0E1B3D; --areia-linha:#FFFFFF; --areia-apoio:#4A5675; --areia-link:#1B4FE0;
+  --topo:#1B4FE0; --topo-ink:#FFFFFF; --fita:#FFC928;
+  --placar:#0E1B3D; --placar-num:#FFC928; --placar-ink:#FFFFFF; --placar-ok:#0B6B3A; --placar-claro:#8CF5BE;
+  --coral:#FF5A36;
+  --ok:#0E7A44; --ok-bg:#DDF6E8; --ok-fill:#1DB56A;
+  --warn:#8A4B00; --warn-bg:#FFF0C4;
   --zap:#0F7A43; --zap-ink:#FFFFFF;
   --danger:#B42318;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
-  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-full:999px;
-  --e1:0 1px 2px rgba(30,42,50,.06); --e2:0 8px 24px rgba(30,42,50,.14);
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-full:999px;
   --toque:48px;
-  --font-display:"Outfit",system-ui,sans-serif;
-  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#10181D; --surface:#18242B; --ink:#EEF3F5; --muted:#9DB0B8; --line:#2A3A43;
-    --accent:#7CCBDC; --accent-ink:#0B1418; --cta:#FF7A47; --cta-ink:#1E2A32; --sand:#4A3B1E;
-    --ok:#6FDCA6; --ok-bg:#123524; --ok-fill:#2BB673; --warn:#F5C261; --warn-bg:#3B2C0E;
-    --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
+    --bg:#0A1330; --surface:#111C3F; --ink:#EEF2FF; --muted:#A8B3D6;
+    --line:#26335F; --line-forte:#5A6894; --trilho:#26335F;
+    --accent:#8CAEFF; --accent-ink:#0A1330; --accent-tint:#1B2C66;
+    --cta-hover:#FFD95E;
+    --topo:#1A3FB8; --placar:#050B22;
+    --ok:#6FE0A6; --ok-bg:#12392A; --ok-fill:#22C171; --warn:#F6C766; --warn-bg:#3A2C0F;
+    --zap:#36C877; --zap-ink:#04140B; --danger:#FF8A80;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#10181D; --surface:#18242B; --ink:#EEF3F5; --muted:#9DB0B8; --line:#2A3A43;
-    --accent:#7CCBDC; --accent-ink:#0B1418; --cta:#FF7A47; --cta-ink:#1E2A32; --sand:#4A3B1E;
-    --ok:#6FDCA6; --ok-bg:#123524; --ok-fill:#2BB673; --warn:#F5C261; --warn-bg:#3B2C0E;
-    --zap:#36C877; --zap-ink:#06150D; --danger:#FF8A80;
+  --bg:#0A1330; --surface:#111C3F; --ink:#EEF2FF; --muted:#A8B3D6;
+  --line:#26335F; --line-forte:#5A6894; --trilho:#26335F;
+  --accent:#8CAEFF; --accent-ink:#0A1330; --accent-tint:#1B2C66;
+  --cta-hover:#FFD95E;
+  --topo:#1A3FB8; --placar:#050B22;
+  --ok:#6FE0A6; --ok-bg:#12392A; --ok-fill:#22C171; --warn:#F6C766; --warn-bg:#3A2C0F;
+  --zap:#36C877; --zap-ink:#04140B; --danger:#FF8A80;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
-a{color:var(--accent)}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:2px}
 p{margin:0}
-h1,h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
-h1{font-size:32px;line-height:1.1}
-h2{font-size:20px;line-height:1.2}
+h1,h2{font-family:var(--font-display);font-weight:700;text-wrap:balance;margin:0}
+h1{font-size:36px;line-height:1.02}
+h2{font-size:24px;line-height:1.08}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
-.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-.brand{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--ink);text-decoration:none;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
-.brand small{font-family:var(--font-body);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
-nav{display:flex;gap:2px;flex-wrap:nowrap;justify-content:flex-end}
-nav a,nav button{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--font-body);color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:var(--r-sm);border:0;background:none;cursor:pointer;min-height:40px;white-space:nowrap}
+/* Cabeçalho: a fita da quadra (cobalto com a linha amarela embaixo) */
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:var(--topo);color:var(--topo-ink);border-bottom:4px solid var(--fita)}
+.top :focus-visible{outline-color:var(--fita)}
+.brand{display:inline-flex;align-items:center;gap:10px;color:var(--topo-ink);text-decoration:none;font-family:var(--font-display);font-style:italic;font-weight:800;font-size:27px;line-height:1;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
+.brand svg{width:36px;height:36px;flex:none}
+nav{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-end;align-items:center}
+nav a,nav button{display:inline-flex;align-items:center;gap:6px;font:600 16px var(--font-body);color:var(--topo-ink);text-decoration:none;padding:8px 12px;border-radius:var(--r-sm);border:0;background:none;cursor:pointer;min-height:42px;white-space:nowrap}
 nav svg{width:20px;height:20px;flex:none}
-nav a[aria-current="page"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
-nav button[aria-pressed="true"]{color:var(--accent)}
-.aviso{max-width:560px;margin:0 auto;padding:0 16px}
-.aviso{display:grid;gap:8px}
+nav a[aria-current="page"],nav button[aria-pressed="true"]{background:rgba(255,255,255,.16);box-shadow:inset 0 -3px 0 var(--fita)}
+nav a.procurar{background:var(--cta);color:var(--cta-ink)}
+nav a.procurar[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--cta-ink)}
+.aviso{max-width:600px;margin:0 auto;padding:0 16px;display:grid;gap:8px}
 .aviso:not(:empty){padding-top:12px}
-.faixa{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600}
+.faixa{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);font-size:15px;font-weight:600}
 .faixa .btn:not(.ghost){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips button{font:600 14px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-full);padding:10px 14px;min-height:44px;cursor:pointer}
-.chips button:hover{border-color:var(--accent)}
-.num,.score,.g-sub,.psub,.meta{font-variant-numeric:tabular-nums}
 
-.wrap{max-width:560px;margin:0 auto;padding:16px 16px 56px;display:grid;gap:18px}
-.stack{display:grid;gap:18px}
-section{display:grid;gap:10px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;box-shadow:var(--e1)}
+.wrap{max-width:600px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:24px}
+.stack{display:grid;gap:16px}
+section{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
 .muted{color:var(--muted)}
-.note{color:var(--muted);font-size:14px}
-.back{font-weight:600;text-decoration:none;font-size:15px;justify-self:start}
+.note{color:var(--muted);font-size:15px}
+.back{font-weight:600;text-decoration:none;font-size:16px;justify-self:start}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.kicker{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent)}
-.banner{padding:10px 12px;border-radius:var(--r-md);background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:14px}
-.empty{padding:16px;border:1px dashed var(--line);border-radius:var(--r-md);color:var(--muted);text-align:center;font-size:15px}
+.kicker{font-size:16px;font-weight:700;color:var(--accent)}
+.banner{padding:10px 12px;border-radius:var(--r-md);background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:15px}
+.empty{padding:18px;border:1.5px dashed var(--line-forte);border-radius:var(--r-md);color:var(--muted);text-align:center;font-size:16px;display:grid;gap:10px;justify-items:center}
 
-/* Números do painel */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;display:grid;gap:2px;align-content:start}
-.tile.big{grid-column:1/-1;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.tile .lbl{font-size:13px;font-weight:700;color:var(--muted)}
-.tile.big .lbl,.tile.big .sub{color:inherit;opacity:.78}
-.num{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
-.tile .num{font-size:30px}
-.tile.big .num{font-size:44px}
-.tile .sub{font-size:13px;color:var(--muted)}
+/* Quadra de areia: o início é uma quadra vista de cima, com a linha branca */
+.quadra{position:relative;isolation:isolate;background:var(--areia);color:var(--areia-ink);border-radius:var(--r-lg);padding:30px 26px 26px;display:grid;gap:16px}
+.quadra::before{content:"";position:absolute;inset:10px;border:3px solid var(--areia-linha);border-radius:4px;z-index:-1;pointer-events:none}
+.quadra h1{font-size:44px;line-height:.98}
+.quadra>p{font-size:18px;max-width:36ch}
+.quadra .note{color:var(--areia-apoio)}
+.quadra a:not(.btn){color:var(--areia-link)}
+.acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn.acao{flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;gap:12px;min-height:112px;padding:14px}
+.btn.acao svg{width:28px;height:28px;flex:none}
+.btn.acao b{display:block;font:700 30px/.95 var(--font-display)}
+.btn.acao small{display:block;font-weight:600;font-size:14px;line-height:1.25;margin-top:4px}
+@media (max-width:359px){.acoes{grid-template-columns:1fr}}
+.chamada{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
+.acoes-rodape{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acoes-rodape svg{width:20px;height:20px;flex:none}
 
-/* Botões e marcas */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--toque);padding:10px 16px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px var(--font-body);text-decoration:none;cursor:pointer;text-align:center}
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--toque);padding:10px 16px;border-radius:var(--r-md);border:1.5px solid var(--line-forte);background:var(--surface);color:var(--ink);font:700 17px var(--font-body);text-decoration:none;cursor:pointer;text-align:center;transition:transform .08s ease,background-color .15s ease,border-color .15s ease}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--cta);color:var(--cta-ink);border-color:var(--cta)}
+.btn.primary:hover{background:var(--cta-hover);border-color:var(--cta-hover)}
+.btn.sec{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.zap{background:var(--zap);color:var(--zap-ink);border-color:var(--zap)}
 .btn.block{width:100%}
 .btn.big{min-height:58px;font-size:20px}
-.btn.sm{min-height:38px;padding:6px 12px;font-size:14px;border-radius:var(--r-sm)}
+.btn.sm{min-height:40px;padding:6px 12px;font-size:15px;border-radius:var(--r-sm)}
 .btn.danger{color:var(--danger)}
-.btn{transition:transform .08s ease,background-color .15s ease,border-color .15s ease}
 .btn:active{transform:scale(.98)}
 .btn[disabled]{opacity:.6;cursor:progress}
 .btn[disabled]::after{content:"";width:16px;height:16px;flex:none;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:gira .7s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
-.link{border:0;background:none;padding:0 2px;font:600 15px var(--font-body);color:var(--accent);text-decoration:underline;cursor:pointer}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:var(--r-full);font-size:12.5px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.link{border:0;background:none;padding:0 2px;font:600 16px var(--font-body);color:var(--accent);text-decoration:underline;cursor:pointer}
+.chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:var(--r-full);font-size:13px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip.nivel{background:var(--accent-tint);color:var(--ink);border-color:transparent}
 .chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
 .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
 .chip.test{background:transparent;border-style:dashed}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:600 16px var(--font-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line-forte);border-radius:var(--r-full);padding:9px 16px;min-height:44px;cursor:pointer}
+.chips button:hover{border-color:var(--accent);color:var(--accent)}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
-.passos{margin:0;padding-left:22px;display:grid;gap:10px}
-.prova{font-size:15px;border-left:4px solid var(--cta);padding:2px 0 2px 12px}
-/* Pesquisa: uma barra por canal, mesma pergunta */
+.passos{margin:0;padding-left:24px;display:grid;gap:10px}
+.passos li::marker{font-family:var(--font-display);font-weight:700;color:var(--accent)}
+.prova{font-size:16px;border-left:4px solid var(--accent);padding:2px 0 2px 12px}
 .ev{display:grid;gap:10px}
-.ev-top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
-.bar.ev-bar>span{background:var(--accent)}
+.ev-top{display:flex;justify-content:space-between;gap:8px;font-size:15px}
 .codigo{font-family:var(--font-display);font-size:1.25em;letter-spacing:.12em;text-transform:uppercase}
-.filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
-.filtros .check{grid-column:1/-1}
 .beneficios{margin:0;padding-left:20px;display:grid;gap:8px}
-.plano{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
+.plano{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:16px}
+.num,.score,.g-sub,.psub,.meta{font-variant-numeric:tabular-nums}
 
-/* Jogos */
-.list{display:grid;gap:8px}
-.game{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);text-decoration:none;color:inherit}
+/* Números do painel: os grandes viram placar */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;display:grid;gap:2px;align-content:start}
+.tile.big{grid-column:1/-1;background:var(--placar);color:var(--placar-ink);border-color:var(--placar)}
+.tile .lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.tile.big .lbl,.tile.big .sub{color:inherit;opacity:.85}
+.num{font-family:var(--font-display);font-weight:700;line-height:1}
+.tile .num{font-size:34px}
+.tile.big .num{font-size:54px;font-style:italic;font-weight:800;color:var(--placar-num)}
+.tile .sub{font-size:14px;color:var(--muted)}
+
+/* Jogos: canhoto da data (areia), informação e mini placar */
+.list{display:grid;gap:10px}
+.game{display:grid;grid-template-columns:66px minmax(0,1fr) auto;align-items:stretch;min-height:96px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);text-decoration:none;color:inherit;overflow:hidden}
 .game:hover{border-color:var(--accent)}
-.g-title{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.g-sub{font-size:14px;color:var(--muted)}
-.g-count{display:grid;justify-items:end;gap:4px}
-.g-count .num{font-size:24px}
-.game .bar{grid-column:1/-1}
-.bar{height:8px;border-radius:var(--r-full);background:var(--line);overflow:hidden}
-.bar>span{display:block;width:0;height:100%;background:var(--warn);border-radius:var(--r-full);transition:width .5s ease}
+.g-data{display:grid;align-content:center;justify-items:center;gap:3px;padding:10px 4px;background:var(--areia);color:var(--areia-ink);border-right:3px solid var(--areia-linha);font-family:var(--font-display);font-weight:700;line-height:1;text-align:center}
+.g-data .d-sem,.g-data .d-hora{font-size:16px}
+.g-data .d-num{font-size:32px}
+.g-info{display:grid;gap:3px;align-content:center;min-width:0;padding:12px 4px 12px 14px}
+.g-title{font-weight:700;font-size:18px;line-height:1.25;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.g-sub{font-size:15px;color:var(--muted);line-height:1.35}
+.g-info .bar{margin-top:6px}
+.g-lado{display:grid;align-content:center;justify-items:end;padding:12px}
+.mini{display:grid;justify-items:center;gap:3px;min-width:62px;padding:8px 8px 7px;border-radius:10px;background:var(--placar);color:var(--placar-ink);line-height:1;text-align:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.mini b{font-family:var(--font-display);font-style:italic;font-weight:800;font-size:30px;color:var(--placar-num);font-variant-numeric:tabular-nums}
+.mini span{font-size:12px;font-weight:600}
+.mini.ok{background:var(--placar-ok)}
+.mini.ok b{color:var(--placar-ink);font-size:21px;padding:3px 0}
+.mini.off{background:var(--trilho);color:var(--muted);box-shadow:none}
+.mini.off b{color:var(--muted)}
+.bar{height:8px;border-radius:var(--r-full);background:var(--trilho);overflow:hidden}
+.bar>span{display:block;width:0;height:100%;background:var(--accent);border-radius:var(--r-full);transition:width .5s ease}
 .bar.full>span{background:var(--ok-fill)}
+.bar.ev-bar>span{background:var(--accent)}
 
-/* Placar */
-.score-card{display:grid;gap:8px;text-align:center}
-.score{font-family:var(--font-display);font-weight:800;font-size:68px;line-height:1;font-variant-numeric:tabular-nums}
-.score small{font-size:36px;color:var(--muted)}
-.score-lbl{font-weight:600;color:var(--muted)}
-.score-card .bar{height:12px}
-.status{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1.1}
+/* Placar: o elemento ousado do sistema */
+.score-card{display:grid;gap:8px;text-align:center;background:var(--placar);color:var(--placar-ink);border-color:var(--placar);padding:24px 18px}
+.score{font-family:var(--font-display);font-style:italic;font-weight:800;font-size:88px;line-height:.9;color:var(--placar-num)}
+.score small{font-size:46px;color:rgba(255,255,255,.72)}
+.score-lbl{font-weight:600;color:rgba(255,255,255,.86)}
+.score-card .bar{height:12px;background:rgba(255,255,255,.18)}
+.score-card .bar>span{background:var(--placar-num)}
+.score-card .muted{color:rgba(255,255,255,.8)}
+.status{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.05}
 .status.ok{color:var(--ok)}
 .status.warn{color:var(--warn)}
-.score-card.fechou{border-color:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
+.score-card .status{color:var(--placar-num)}
+.score-card.fechou{background:var(--placar-ok);border-color:var(--placar-ok)}
+.score-card.fechou .score,.score-card.fechou .status{color:var(--placar-ink)}
+.score-card.fechou .bar>span{background:var(--placar-ink)}
 .pop{animation:pop .6s ease}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.05)}100%{transform:scale(1)}}
 
 /* Pessoas */
 .prow{display:grid;grid-template-columns:40px 1fr;gap:10px 12px;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
 .prow.in{border-color:var(--ok)}
-.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--sand);color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:17px}
+.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--areia);color:var(--areia-ink);font-family:var(--font-display);font-weight:700;font-size:18px}
 .pname{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.psub{font-size:14px;color:var(--muted)}
+.psub{font-size:15px;color:var(--muted)}
 .pact{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
 .pact:empty{display:none}
 @media (min-width:500px){.prow{grid-template-columns:40px 1fr auto}.pact{grid-column:auto;justify-content:flex-end}}
 
 /* Formulários */
-.form{display:grid;gap:16px}
-.fld{display:grid;gap:6px;font-weight:600;font-size:14px}
-input,select,textarea{font:500 16px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;width:100%;min-height:var(--toque)}
+.form{display:grid;gap:18px}
+.fld{display:grid;gap:6px;font-weight:600;font-size:15px}
+input,select,textarea{font:400 17px var(--font-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line-forte);border-radius:var(--r-sm);padding:10px 12px;width:100%;min-height:var(--toque)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 textarea{min-height:120px;resize:vertical}
 fieldset{border:0;margin:0;padding:0;min-width:0}
-legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
+legend{font-weight:600;font-size:15px;padding:0;margin-bottom:8px}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.seg legend{grid-column:1/-1;float:left;width:100%}
+.seg.tres{grid-template-columns:1fr}
 .seg label{position:relative;cursor:pointer;display:block}
-.seg input,.chips-in input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;pointer-events:none}
-.seg span{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);font-weight:700;background:var(--surface);height:100%}
-.seg small{font-weight:500;color:var(--muted);font-size:13px;line-height:1.3}
-.seg input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
-.seg input:focus-visible+span,.chips-in input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
-.seg.cinco{grid-template-columns:repeat(5,1fr)}
-.seg.cinco span{text-align:center;font-family:var(--font-display);font-size:22px;padding:8px 0}
-.nivel-txt{font-size:14px;color:var(--muted);margin-top:6px}
+.seg input,.chips-in input,.op input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;pointer-events:none}
+.seg span{display:grid;gap:3px;align-content:start;padding:10px 12px;border:1.5px solid var(--line-forte);border-radius:var(--r-md);font-weight:700;background:var(--surface);height:100%}
+.seg.tres span{gap:2px;font:700 21px/1.1 var(--font-display);padding:12px 14px}
+@media (min-width:560px){.seg.tres{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.seg small{font:400 14px/1.3 var(--font-body);color:var(--muted)}
+.seg input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);background:var(--accent-tint)}
+.seg input:focus-visible+span,.chips-in input:focus-visible+span,.op input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.nivel-txt{font-size:15px;color:var(--muted);margin-top:6px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:start;font-weight:600;font-size:15px;cursor:pointer}
-.check input{width:22px;height:22px;min-height:0;margin:1px 0 0;padding:0}
-.check small{grid-column:2;font-weight:500;color:var(--muted);font-size:13px;line-height:1.35}
-.chips-in{display:flex;flex-wrap:wrap;gap:6px}
+.check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:start;font-weight:600;font-size:16px;cursor:pointer}
+.check input{width:22px;height:22px;min-height:0;margin:1px 0 0;padding:0;accent-color:var(--accent)}
+.check small{grid-column:2;font-weight:400;color:var(--muted);font-size:14px;line-height:1.35}
+.chips-in{display:flex;flex-wrap:wrap;gap:8px}
 .chips-in label{position:relative}
-.chips-in span{display:inline-block;padding:8px 12px;border-radius:var(--r-full);border:1px solid var(--line);font-size:14px;font-weight:600;cursor:pointer;background:var(--surface)}
+.chips-in span{display:inline-block;padding:8px 14px;border-radius:var(--r-full);border:1.5px solid var(--line-forte);font-size:16px;font-weight:600;cursor:pointer;background:var(--surface)}
 .chips-in input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .inline input{flex:1 1 180px;width:auto}
-details>summary{cursor:pointer;font-weight:700;font-size:16px;list-style-position:inside}
+details>summary{cursor:pointer;font-weight:700;font-size:17px;list-style-position:inside}
 details[open]>summary{margin-bottom:14px}
+
+/* Filtros da busca: esporte, dia e período sempre à vista */
+.filtros{display:grid;gap:16px}
+.rolar{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 6px;scrollbar-width:none}
+.rolar::-webkit-scrollbar{display:none}
+.op{position:relative;flex:none;display:block}
+.op span{display:grid;place-items:center;text-align:center;min-height:44px;padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--line-forte);background:var(--surface);font-weight:600;font-size:16px;line-height:1.1;cursor:pointer;white-space:nowrap}
+.op input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.periodos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.niveis-f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dias .op span,.periodos .op span,.niveis-f .op span{border-radius:var(--r-sm);padding:8px 2px}
+.periodos small{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:2px;white-space:normal}
+#jg-mais{border-top:1px solid var(--line);padding-top:12px}
+.filtros-mais{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.filtros-mais .larga,.filtros-mais .check{grid-column:1/-1}
 
 /* Convite */
 .invite{display:grid;gap:8px}
-.meta{display:grid;gap:3px;font-size:17px}
-.msg{white-space:pre-wrap;font:500 15px/1.45 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;margin:0;overflow-wrap:anywhere}
+.meta{display:grid;gap:3px;font-size:18px}
+.msg{white-space:pre-wrap;font:400 16px/1.45 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;margin:0;overflow-wrap:anywhere}
 
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:var(--r-md);font-weight:600;font-size:15px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:var(--r-md);font-weight:600;font-size:16px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
 #toast.on{opacity:1}
-.copia{position:fixed;inset:0;background:rgba(5,12,15,.5);display:grid;place-items:center;padding:16px;z-index:25}
+.copia{position:fixed;inset:0;background:rgba(5,12,34,.55);display:grid;place-items:center;padding:16px;z-index:25}
 .copia[hidden]{display:none}
 .copia .card{width:min(520px,100%);display:grid;gap:12px}
 #confete{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.so-largo{display:inline}
 @media (max-width:719px){
-  nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);justify-content:space-around;gap:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(14,27,61,.08);justify-content:space-around;gap:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
   nav:empty{display:none}
-  nav a,nav button{flex:1 1 0;flex-direction:column;gap:2px;min-height:52px;padding:6px 2px;font-size:12px;justify-content:center}
+  nav a,nav button{position:relative;flex:1 1 0;flex-direction:column;gap:3px;min-height:56px;padding:4px 2px;font-size:13px;color:var(--muted);justify-content:center;border-radius:0}
   nav svg{width:24px;height:24px}
-  .wrap{padding-bottom:112px}
-  #toast{bottom:88px}
+  nav a[aria-current="page"],nav button[aria-pressed="true"]{color:var(--accent);background:none;box-shadow:none}
+  nav a[aria-current="page"]::before,nav button[aria-pressed="true"]::before{content:"";position:absolute;top:-6px;left:26%;right:26%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+  nav a.procurar{background:none;color:var(--ink)}
+  nav a.procurar svg{width:54px;height:30px;padding:3px 15px;border-radius:var(--r-full);background:var(--cta);color:var(--cta-ink)}
+  nav a.procurar[aria-current="page"]{color:var(--accent);box-shadow:none}
+  .so-largo{display:none}
+  .wrap{padding-bottom:124px}
+  #toast{bottom:92px}
 }
 @media (prefers-reduced-motion: reduce){.btn,.btn[disabled]::after{transition:none;animation:none}.pop{animation:none}.bar>span,#toast{transition:none}}
 </style>
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#painel">Fechou</a>
+  <a class="brand" href="#painel" aria-label="Energia Boa, início"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13.6 28A12 12 0 1 1 34.4 28Z" fill="#FFC928"/><rect x="5" y="27" width="38" height="4.6" rx="2.3" fill="#fff"/><rect x="12" y="34.5" width="24" height="3.4" rx="1.7" fill="#fff" opacity=".6"/><rect x="17" y="40.5" width="14" height="2.8" rx="1.4" fill="#fff" opacity=".35"/></svg><span>Energia Boa</span></a>
   <nav id="nav" aria-label="Seções"></nav>
 </header>
 <div id="aviso" class="aviso"></div>
@@ -256,7 +324,7 @@ details[open]>summary{margin-bottom:14px}
 "use strict";
 
 /* ---------- Configuração ---------- */
-var APP = "Fechou";
+var APP = "Energia Boa";
 var TALLY_URL = "https://tally.so/r/Ar2MZ0";
 /* O que ouvimos dos jogadores. Só números reais, contados das telas do Tally e de 2 enquetes de WhatsApp em 15/11/2026.
    "sim" = perdeu pelo menos 1 jogo por falta de gente nas últimas 4 semanas; "de" = quem joga ("Não jogo" fica fora).
@@ -278,8 +346,20 @@ var PESQUISA = {
 };
 var ESPORTES = ["Vôlei de praia","Futevôlei","Beach tennis","Padel","Tênis","Futebol society ou futsal"];
 var TOTAL_PADRAO = {"Vôlei de praia":4,"Futevôlei":4,"Beach tennis":4,"Padel":4,"Tênis":2,"Futebol society ou futsal":10};
-var NIVEIS = ["","Iniciante","Básico","Intermediário","Avançado","Competitivo"];
-var NIVEL_DESC = ["","Iniciante: começou agora","Básico: joga por diversão","Intermediário: joga toda semana","Avançado: joga torneio local","Competitivo ou professor"];
+/* Três níveis, sem números na tela. O banco guarda número (as regras pedem número): 1 iniciante, 3 intermediário, 5 avançado.
+   Dados da escala antiga de 1 a 5 (formulário) continuam valendo: 1 e 2 são iniciante, 3 intermediário, 4 e 5 avançado. */
+var NIVEIS = [
+  { v: 1, nome: "Iniciante", desc: "Começou agora ou joga por diversão" },
+  { v: 3, nome: "Intermediário", desc: "Joga toda semana" },
+  { v: 5, nome: "Avançado", desc: "Joga torneio ou dá aula" }
+];
+/* Período do dia para o filtro: começa às 5h, 12h e 18h. */
+var PERIODOS = [
+  { v: "manha", nome: "Manhã", horas: "5h às 12h" },
+  { v: "tarde", nome: "Tarde", horas: "12h às 18h" },
+  { v: "noite", nome: "Noite", horas: "18h em diante" }
+];
+var ORDEM_DIAS = [1, 2, 3, 4, 5, 6, 0];
 var HORARIOS = ["Manhã em dia útil","Tarde em dia útil","Noite em dia útil","Sábado de manhã","Sábado à tarde ou noite","Domingo de manhã","Domingo à tarde ou noite"];
 var HORARIO_CURTO = {"Manhã em dia útil":"Seg–sex manhã","Tarde em dia útil":"Seg–sex tarde","Noite em dia útil":"Seg–sex noite","Sábado de manhã":"Sáb manhã","Sábado à tarde ou noite":"Sáb tarde/noite","Domingo de manhã":"Dom manhã","Domingo à tarde ou noite":"Dom tarde/noite"};
 var ARENAS_REGIAO = ["Arena BT by Betina Travi","X7 Padel","Reis D'arena","Toca do Lobo Arena","Arena 421","Arena HCL","Arena Araranguá","Núcleo Sport Club Serramar","Arena 165","Araras Sport","Art Soccer Campo Society","Grêmio Fronteira Clube","Boleiros Beer","AABB Araranguá"];
@@ -378,16 +458,32 @@ function porPessoa(g){ var v = Number(g.valor), t = Number(g.total); return (v >
 function linkConvite(g){ return location.origin + location.pathname + "#convite-" + g.id; }
 function esporteMsg(e){ return e === "Futebol society ou futsal" ? "futebol society/futsal" : String(e || "").toLowerCase(); }
 
-/* Regra de quem combina: mesmo esporte; nível até 1 de diferença; horário que a pessoa marcou. */
+/* Níveis */
+function grupoNivel(n){ n = Number(n) || 0; return n <= 0 ? 0 : n <= 2 ? 1 : n < 4 ? 2 : 3; }
+function nivelDe(n){ return NIVEIS[grupoNivel(n) - 1] || null; }
+function nomeNivel(n){ var x = nivelDe(n); return x ? x.nome : ""; }
+function valorNivel(n){ var x = nivelDe(n); return x ? x.v : 0; }
+function segNivel(nome, atual){
+  var g = grupoNivel(atual);
+  return '<div class="seg tres">' + NIVEIS.map(function(o, i){
+    return '<label><input type="radio" name="' + nome + '" value="' + o.v + '"' + (g === i + 1 ? " checked" : "") + "><span>" + o.nome + "<small>" + o.desc + "</small></span></label>";
+  }).join("") + "</div>";
+}
+function periodoDe(dt){ var h = dt.getHours(); return (h >= 5 && h < 12) ? "manha" : (h >= 12 && h < 18) ? "tarde" : "noite"; }
+function curtoEsporte(e){ return e === "Futebol society ou futsal" ? "Futebol" : e; }
+
+/* Regra de quem combina: mesmo esporte. Mesmo nível e horário que a pessoa marcou = combina.
+   Nível vizinho no horário certo, ou mesmo nível em outro horário = quase. Iniciante e avançado não se cruzam. */
 function avaliar(j, g){
   if (!Array.isArray(j.esportes) || j.esportes.indexOf(g.esporte) < 0) return null;
-  var dn = (Number(j.nivel) || 0) - (Number(g.nivel) || 0);
-  var nivelOk = Math.abs(dn) <= 1;
+  var dn = grupoNivel(j.nivel) - grupoNivel(g.nivel), dist = Math.abs(dn);
+  if (!grupoNivel(j.nivel) || !grupoNivel(g.nivel) || dist >= 2) return null;
+  var nivelOk = dist === 0;
   var fx = faixas(g.quando);
   var horaOk = Array.isArray(j.horarios) && j.horarios.some(function(h){ return fx.indexOf(h) >= 0; });
   if (!nivelOk && !horaOk) return null;
   var motivo = (nivelOk && horaOk) ? "Combina" : (!nivelOk ? (dn > 0 ? "Nível acima" : "Nível abaixo") : "Outro horário");
-  return { nivelOk: nivelOk, horaOk: horaOk, score: (nivelOk ? 1 : 0) + (horaOk ? 1 : 0), motivo: motivo, dist: Math.abs(dn) };
+  return { nivelOk: nivelOk, horaOk: horaOk, score: (nivelOk ? 1 : 0) + (horaOk ? 1 : 0), motivo: motivo, dist: dist };
 }
 
 function metricas(){
@@ -436,7 +532,7 @@ function msgConvite(g, j, av, comLink){
   var e = estadoJogo(g), pp = porPessoa(g), nome = primeiroNome(j.nome);
   var porque = (av.nivelOk && av.horaOk) ? "é do seu nível e no horário que você marcou" : (av.horaOk ? "é no horário que você marcou" : "é do seu nível");
   return [
-    "Oi" + (nome ? ", " + nome : "") + "! " + (g.origem === "jogador" && g.donoNome ? g.donoNome + " está montando um jogo de " : "Tem jogo de ") + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ") " + quandoTexto(g.quando) + " na " + g.arena + ".",
+    "Oi" + (nome ? ", " + nome : "") + "! " + (g.origem === "jogador" && g.donoNome ? g.donoNome + " está montando um jogo de " : "Tem jogo de ") + esporteMsg(g.esporte) + " (" + nomeNivel(g.nivel).toLowerCase() + ") " + quandoTexto(g.quando) + " na " + g.arena + ".",
     plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + " pra fechar, e te chamei porque " + porque + "." + (pp ? " Fica " + brl(pp) + " por pessoa." : ""),
     comLink ? "Topa? Confirma aqui: " + linkConvite(g) + "\nOu só responde \"tô dentro\"." : "Topa? Responde \"tô dentro\" que eu te coloco no jogo.",
     "Se não der, tudo bem!"
@@ -445,7 +541,7 @@ function msgConvite(g, j, av, comLink){
 function msgGrupo(g, comLink){
   var e = estadoJogo(g), pp = porPessoa(g);
   return [
-    "Jogo com vaga: " + esporteMsg(g.esporte) + " (" + (NIVEIS[g.nivel] || "").toLowerCase() + ")",
+    "Jogo com vaga: " + esporteMsg(g.esporte) + " (" + nomeNivel(g.nivel).toLowerCase() + ")",
     cap(quandoTexto(g.quando)) + " na " + g.arena + ".",
     plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + " pra fechar." + (pp ? " " + brl(pp) + " por pessoa." : ""),
     comLink ? "Quem topa confirma aqui: " + linkConvite(g) : "Quem topa, responde aqui ou me chama no privado."
@@ -508,7 +604,7 @@ function festa(){
   var cv = $("#confete"), ctx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
   var W = window.innerWidth, H = window.innerHeight;
   cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  var cores = [cssVar("--accent"), cssVar("--ok"), cssVar("--warn"), cssVar("--zap"), cssVar("--sand")];
+  var cores = [cssVar("--cta"), cssVar("--accent"), cssVar("--ok-fill"), cssVar("--coral"), cssVar("--areia")];
   var ps = [];
   for (var i = 0; i < 140; i++){
     ps.push({ x: W / 2 + (Math.random() - 0.5) * 80, y: H * 0.38, vx: (Math.random() - 0.5) * 14, vy: -6 - Math.random() * 12, s: 5 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35, c: cores[i % cores.length] });
@@ -528,7 +624,7 @@ function emApp(){ return (window.matchMedia && window.matchMedia("(display-mode:
 function ehIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent || ""); }
 function faixaInstalar(){
   if (emApp() || lsGet("instalarDepois") === "1" || ["inicio", "meus", "jogos", "painel"].indexOf(V.nome) < 0) return "";
-  if (S.promptInstalar) return '<div class="faixa"><span>Instale o Fechou na tela inicial.</span><span class="row-btns">' +
+  if (S.promptInstalar) return '<div class="faixa"><span>Instale a Energia Boa na tela inicial.</span><span class="row-btns">' +
     '<button class="btn ghost sm" type="button" data-acao="instalar-depois">Agora não</button>' +
     '<button class="btn sm" type="button" data-acao="instalar">Instalar</button></span></div>';
   if (ehIOS()) return '<div class="faixa"><span>No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”.</span>' +
@@ -543,7 +639,7 @@ function avisos(){
     if (S.erroCarga) h += '<div class="banner" role="alert">A conexão com os dados caiu. Recarregue a página.</div>';
     else if (S.lento) h += '<div class="banner" role="status">Os dados estão demorando para chegar. Confira a internet: o que aparece pode estar desatualizado.</div>';
   }
-  if (S.swEspera) h += '<div class="faixa"><span>Tem uma versão nova do Fechou.</span><button class="btn sm" type="button" data-acao="atualizar-app">Atualizar</button></div>';
+  if (S.swEspera) h += '<div class="faixa"><span>Tem uma versão nova da Energia Boa.</span><button class="btn sm" type="button" data-acao="atualizar-app">Atualizar</button></div>';
   h += faixaInstalar();
   if (h !== avisoAtual){ avisoAtual = h; $("#aviso").innerHTML = h; }
 }
@@ -589,17 +685,18 @@ function ico(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 function nav(){
   var el = $("#nav");
   if (S.estado !== "pronto" || V.nome === "convite"){ el.innerHTML = ""; return; }
-  function link(href, txt, ativo, i){ return '<a href="' + href + '"' + (ativo ? ' aria-current="page"' : "") + ">" + ico(i) + "<span>" + txt + "</span></a>"; }
+  function link(href, txt, ativo, i, cls){ return '<a href="' + href + '"' + (cls ? ' class="' + cls + '"' : "") + (ativo ? ' aria-current="page"' : "") + ">" + ico(i) + "<span>" + txt + "</span></a>"; }
+  var procurar = link("#jogos", 'Procurar<span class="so-largo"> jogos</span>', V.nome === "jogos", "busca", "procurar");
   if (!S.usuario){
-    el.innerHTML = link("#jogos", "Jogos abertos", V.nome === "jogos", "busca") + link("#painel", "Entrar", V.nome === "inicio", "entrar");
+    el.innerHTML = procurar + link("#painel", "Entrar", V.nome === "inicio", "entrar");
     return;
   }
   if (!S.admin){
-    el.innerHTML = link("#jogos", "Abertos", V.nome === "jogos", "busca") + link("#novo", "Marcar", V.nome === "novo", "mais") +
+    el.innerHTML = procurar + link("#novo", "Marcar", V.nome === "novo", "mais") +
       link("#painel", "Meus jogos", V.nome === "meus" || V.nome === "jogo", "agenda") + link("#perfil", "Perfil", V.nome === "perfil" || V.nome === "premium" || V.nome === "privacidade", "pessoa");
     return;
   }
-  el.innerHTML = link("#painel", "Jogos", ["painel", "novo", "jogo"].indexOf(V.nome) >= 0, "agenda") + link("#jogadores", "Jogadores", V.nome === "jogadores", "pessoas") +
+  el.innerHTML = procurar + link("#painel", "Painel", ["painel", "novo", "jogo"].indexOf(V.nome) >= 0, "agenda") + link("#jogadores", "Jogadores", V.nome === "jogadores", "pessoas") +
     '<button type="button" data-acao="palco" aria-pressed="' + (S.palco ? "true" : "false") + '">' + ico("olho") + "<span>" + (S.palco ? "Mostrar nomes" : "Ocultar nomes") + "</span></button>";
 }
 
@@ -612,7 +709,7 @@ VIEWS.semConfig = function(){
 };
 VIEWS.semBanco = function(){
   app.innerHTML = navigator.onLine === false
-    ? '<div class="card stack"><h1>Você está sem internet</h1><p>O Fechou abre de novo sozinho quando a conexão voltar.</p></div>'
+    ? '<div class="card stack"><h1>Você está sem internet</h1><p>A Energia Boa abre de novo sozinha quando a conexão voltar.</p></div>'
     : '<div class="card stack"><h1>Não deu para conectar</h1><p>Não consegui carregar os dados. Confira a internet e tente de novo.</p>' +
       '<button class="btn primary" type="button" data-acao="recarregar">Tentar de novo</button></div>';
 };
@@ -633,24 +730,29 @@ function ligarLoginGoogle(btnId, erroId){
     S.conta.entrarGoogle().catch(function(e){ erroEl.textContent = msgLogin(e); erroEl.hidden = false; btn.disabled = false; });
   });
 }
+function acoesPrincipais(marcar){
+  return '<div class="acoes">' +
+    '<a class="btn primary acao" href="#jogos">' + ico("busca") + "<span><b>Procurar<br>jogo</b><small>Entre num jogo com vaga</small></span></a>" +
+    marcar + "</div>";
+}
 VIEWS.inicio = function(v){
-  app.innerHTML = '<div class="card stack"><h1>Falta gente pro seu jogo?</h1>' +
-    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você entra em um toque, na quadra pública ou na arena.</p>" +
-    '<button class="btn primary block big" type="button" id="fl-google">Marcar um jogo</button>' +
-    '<a class="btn ghost block" href="#jogos">Achar um jogo para entrar</a>' +
-    '<div id="fl-erro" class="banner" role="alert" hidden></div>' +
-    '<p class="note">Marcar pede sua conta Google. Para maiores de 18 anos. <a href="#privacidade">Privacidade e segurança</a></p></div>' +
-    '<section><h2>O que você quer jogar?</h2><div class="chips">' +
-      ESPORTES.map(function(e){ return '<button type="button" data-acao="filtrar-esporte" data-esporte="' + esc(e) + '">' + esc(e === "Futebol society ou futsal" ? "Futebol" : e) + "</button>"; }).join("") + "</div></section>" +
+  app.innerHTML =
+    '<section class="quadra"><h1>Falta gente pro seu jogo?</h1>' +
+      "<p>Ache um jogo com vaga perto de você, ou marque o seu e chame quem combina. Na arena ou na quadra pública.</p>" +
+      acoesPrincipais('<button class="btn sec acao" type="button" id="fl-google">' + ico("mais") + "<span><b>Marcar<br>jogo</b><small>Entra com sua conta Google</small></span></button>") +
+      '<div id="fl-erro" class="banner" role="alert" hidden></div>' +
+      '<p class="note">Para maiores de 18 anos. <a href="#privacidade">Privacidade e segurança</a></p></section>' +
     '<section id="in-jogos" hidden><div class="sec-head"><h2>Tem vaga agora</h2><a href="#jogos">Ver todos</a></div><div class="list" id="in-lista"></div></section>' +
-    '<section class="card stack"><h2>Como funciona</h2><ol class="passos">' +
+    '<section><h2>O que você quer jogar?</h2><div class="chips">' +
+      ESPORTES.map(function(e){ return '<button type="button" data-acao="filtrar-esporte" data-esporte="' + esc(e) + '">' + esc(curtoEsporte(e)) + "</button>"; }).join("") + "</div></section>" +
+    '<section><h2>Como funciona</h2><ol class="passos">' +
       "<li><b>Marque:</b> esporte, nível, dia e lugar. Leva 1 minuto.</li>" +
       "<li><b>Mande o link</b> nos seus grupos ou deixe público no app.</li>" +
       "<li><b>Fechou:</b> quem combina entra, e você não joga sozinho.</li></ol></section>" +
     provaCurta() +
-    '<section class="card stack"><span class="kicker">Para arenas</span><h2>Tem horário vazio na sua quadra?</h2>' +
-      "<p>O Fechou leva jogadores para os horários que não enchem. Piloto de 30 dias, grátis.</p>" +
-      '<a class="btn ghost block" href="#arenas">Quero ser arena piloto</a></section>' +
+    '<section class="chamada"><h2>Tem horário vazio na sua quadra?</h2>' +
+      "<p>A Energia Boa leva jogadores para os horários que não enchem. Piloto de 30 dias, grátis.</p>" +
+      '<a class="btn block" href="#arenas">Quero ser arena piloto</a></section>' +
     '<p class="note">Já é do time de uma arena? Entre e use o código em “Meus jogos”.</p>';
   ligarLoginGoogle("fl-google", "fl-erro");
   v.update = function(){
@@ -663,7 +765,7 @@ VIEWS.inicio = function(v){
 function pintarPedidoArena(){
   var box = $("#ar-box");
   if (lsGet("arenaPiloto") === "1"){
-    box.innerHTML = '<div class="status ok">Pedido recebido!</div><p>O time do Fechou vai chamar você no WhatsApp para combinar o piloto.</p>' +
+    box.innerHTML = '<div class="status ok">Pedido recebido!</div><p>O time da Energia Boa vai chamar você no WhatsApp para combinar o piloto.</p>' +
       '<p><button type="button" class="link" data-acao="outra-arena">Cadastrar outra arena</button></p>';
     return;
   }
@@ -677,13 +779,13 @@ function pintarPedidoArena(){
       '<div class="two"><label class="fld">Horários vazios por semana<input id="fa-vazios" type="number" inputmode="numeric" min="0" max="200" placeholder="Ex.: 10"></label>' +
       '<label class="fld">Preço médio da hora (R$)<input id="fa-preco" inputmode="decimal" placeholder="Ex.: 90"></label></div>' +
       '<fieldset class="seg"><legend>Depois do piloto, como faria sentido pagar?</legend>' +
-        '<label><input type="radio" name="famodelo" value="jogo"><span>Por jogo fechado<small>Só paga quando o Fechou encher um horário vazio.</small></span></label>' +
+        '<label><input type="radio" name="famodelo" value="jogo"><span>Por jogo fechado<small>Só paga quando a Energia Boa encher um horário vazio.</small></span></label>' +
         '<label><input type="radio" name="famodelo" value="mensal"><span>Mensalidade<small>Valor fixo por mês.</small></span></label>' +
         '<label><input type="radio" name="famodelo" value="nao-sei" checked><span>Ainda não sei<small>Quero ver o piloto primeiro.</small></span></label>' +
       "</fieldset>" +
       '<div id="fa-erro" class="banner" role="alert" hidden></div>' +
       '<button class="btn primary block big" type="submit" id="fa-enviar">Pedir o piloto</button>' +
-      '<p class="note">Só a equipe do Fechou vê esses dados. Pedir o piloto não gera cobrança nem compromisso.</p>' +
+      '<p class="note">Só a equipe da Energia Boa vê esses dados. Pedir o piloto não gera cobrança nem compromisso.</p>' +
     "</form>";
   $("#f-arena-piloto").addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -741,11 +843,11 @@ function blocoPesquisa(completo){
 VIEWS.arenas = function(){
   app.innerHTML = '<a class="back" href="#painel">← Início</a>' +
     '<div class="card stack"><span class="kicker">Para arenas</span><h1>Horário vazio vira quadra cheia</h1>' +
-    "<p>Tem gente querendo jogar e sem com quem. O Fechou junta essas pessoas por esporte, nível e horário e leva o jogo para o horário que a sua arena não enche.</p>" +
+    "<p>Tem gente querendo jogar e sem com quem. A Energia Boa junta essas pessoas por esporte, nível e horário e leva o jogo para o horário que a sua arena não enche.</p>" +
     '<ol class="passos"><li><b>Você conta</b> quais horários ficam vazios.</li>' +
-    "<li><b>O Fechou chama</b> quem combina com aquele horário.</li>" +
+    "<li><b>A Energia Boa chama</b> quem combina com aquele horário.</li>" +
     "<li><b>O jogo fecha</b> e a quadra é paga a você, do jeito que já é hoje.</li></ol>" +
-    '<p class="note">Piloto de 30 dias, grátis. Você não troca de sistema, e o Fechou não mexe na sua agenda.</p></div>' +
+    '<p class="note">Piloto de 30 dias, grátis. Você não troca de sistema, e a Energia Boa não mexe na sua agenda.</p></div>' +
     blocoPesquisa(false) +
     '<section class="card stack" id="ar-box"></section>';
   pintarPedidoArena();
@@ -759,34 +861,35 @@ function rowArena(a){
     '<div><div class="pname">' + esc(a.arena) + ' <span class="chip' + (a.modelo === "jogo" ? " ok" : "") + '">' + modelo + "</span></div>" +
     '<div class="psub">' + esc(a.cidade || "") + " · " + esc(a.contato || "") + " · " + esc(hhmm(a.criadoEm)) + "</div>" +
     (linha.length ? '<div class="psub">' + esc(linha.join(" · ")) + "</div>" : "") + "</div>" +
-    '<div class="pact"><a class="btn zap sm" target="_blank" rel="noopener" href="' + esc(waLink(a.whatsapp, "Oi, " + primeiroNome(a.contato) + "! Aqui é do Fechou. Recebemos o pedido de piloto da " + a.arena + ". Podemos combinar os horários?")) + '">Chamar</a>' +
+    '<div class="pact"><a class="btn zap sm" target="_blank" rel="noopener" href="' + esc(waLink(a.whatsapp, "Oi, " + primeiroNome(a.contato) + "! Aqui é da Energia Boa. Recebemos o pedido de piloto da " + a.arena + ". Podemos combinar os horários?")) + '">Chamar</a>' +
     '<button class="btn ghost sm danger" type="button" data-acao="remover-arena" data-id="' + esc(a.id) + '">Remover</button></div></div>';
 }
 VIEWS.privacidade = function(){
   app.innerHTML = '<a class="back" href="#painel">← Voltar</a><h1>Privacidade e segurança</h1>' +
-    '<section class="card stack"><h2>O que o Fechou guarda</h2><ul class="beneficios">' +
+    '<section class="card stack"><h2>O que a Energia Boa guarda</h2><ul class="beneficios">' +
       "<li><b>Conta:</b> o login é do Google. Guardamos seu identificador e, se você preencher, o perfil: nome, cidade, esportes, nível, horários e WhatsApp.</li>" +
       "<li><b>Jogos:</b> esporte, nível, dia, lugar, cidade e o primeiro nome de quem organiza.</li>" +
       "<li><b>Presença:</b> o nome que você escreveu ao entrar num jogo.</li>" +
       "<li><b>Localização:</b> o app não usa GPS. Você escolhe a cidade.</li></ul></section>" +
     '<section class="card stack"><h2>Quem vê o quê</h2><ul class="beneficios">' +
       "<li>Qualquer pessoa com o link vê o jogo e o primeiro nome de quem confirmou.</li>" +
-      "<li>O WhatsApp de quem organiza só aparece para quem entrou no jogo com conta, e para a equipe do Fechou.</li>" +
-      "<li>Seu perfil e seu WhatsApp só são vistos por você e pela equipe do Fechou, para chamar você para jogos, se você marcou essa opção.</li></ul></section>" +
+      "<li>O WhatsApp de quem organiza só aparece para quem entrou no jogo com conta, e para a equipe da Energia Boa.</li>" +
+      "<li>Seu perfil e seu WhatsApp só são vistos por você e pela equipe da Energia Boa, para chamar você para jogos, se você marcou essa opção.</li></ul></section>" +
     '<section class="card stack"><h2>Seus direitos</h2><p>Você pode corrigir ou apagar o perfil em <a href="#perfil">Perfil</a>, sair de um jogo e apagar os jogos que marcou. Para tirar seu nome de um jogo em que entrou sem conta, avise quem organizou.</p></section>' +
     '<section class="card stack"><h2>Jogar com quem você não conhece</h2><ul class="beneficios">' +
-      "<li>O Fechou é para maiores de 18 anos.</li>" +
+      "<li>A Energia Boa é para maiores de 18 anos.</li>" +
       "<li>Prefira jogos em arenas ou lugares públicos e movimentados, e avise alguém para onde vai.</li>" +
       "<li>Jogo público pede conta: quem organiza sabe quem entrou.</li>" +
-      "<li>Não passe endereço de casa nem dados de pagamento. O Fechou não cobra nada nem reserva quadra: o horário da arena é combinado direto com ela.</li>" +
-      "<li>Viu algo errado num jogo? Avise quem organizou e a equipe do Fechou.</li></ul></section>";
+      "<li>Não passe endereço de casa nem dados de pagamento. A Energia Boa não cobra nada nem reserva quadra: o horário da arena é combinado direto com ela.</li>" +
+      "<li>Viu algo errado num jogo? Avise quem organizou e a equipe da Energia Boa.</li></ul></section>";
 };
 VIEWS.meus = function(v){
   var u = S.usuario || {};
   app.innerHTML =
     "<h1>Meus jogos</h1>" +
-    '<div class="row-btns"><a class="btn primary big" href="#novo">Marcar jogo</a><a class="btn ghost big" href="#jogos">Achar um jogo</a></div>' +
+    acoesPrincipais('<a class="btn sec acao" href="#novo">' + ico("mais") + "<span><b>Marcar<br>jogo</b><small>Chame quem está faltando</small></span></a>") +
     (S.perfil ? "" : '<p class="prova">Complete seu <a href="#perfil">perfil</a> para ser chamado para jogos do seu nível.</p>') +
+    '<section id="m-abertos" hidden><div class="sec-head"><h2>Tem vaga agora</h2><a href="#jogos">Ver todos</a></div><div class="list" id="m-abertos-l"></div></section>' +
     '<section><h2>Marquei</h2><div class="list" id="m-lista"></div></section>' +
     '<section><h2>Vou jogar</h2><div class="list" id="m-vou"></div></section>' +
     '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
@@ -817,6 +920,12 @@ VIEWS.meus = function(v){
       : '<div class="empty">' + (S.carregado.jogos ? "Você ainda não marcou nenhum jogo." : "Carregando…") + "</div>";
     var ids = {};
     S.confs.forEach(function(c){ if (c.uid === u.uid) ids[c.jogoId] = true; });
+    var cid = S.perfil && S.perfil.cidadeChave;
+    function daCidade(g){ return cid && (g.cidadeChave || chave(g.cidade)) === cid ? 0 : 1; }
+    var abertos = S.jogos.filter(function(g){ return g.visibilidade === "publico" && !g.teste && !jaPassou(g) && !estadoJogo(g).fechado && g.donoUid !== u.uid && !ids[g.id]; })
+      .sort(function(a, b){ return (daCidade(a) - daCidade(b)) || String(a.quando).localeCompare(String(b.quando)); }).slice(0, 3);
+    $("#m-abertos").hidden = !abertos.length;
+    $("#m-abertos-l").innerHTML = abertos.map(cardPublico).join("");
     var vou = S.jogos.filter(function(g){ return ids[g.id] && g.donoUid !== u.uid; })
       .sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
     $("#m-vou").innerHTML = vou.length ? vou.map(cardPublico).join("") : '<div class="empty">Quando você fizer check-in em um jogo, ele aparece aqui.</div>';
@@ -826,7 +935,7 @@ VIEWS.meus = function(v){
 VIEWS.perfil = function(){
   var p = S.perfil || {}, u = S.usuario || {}, novo = !S.perfil;
   var esportes = p.esportes || [], horarios = p.horarios || [];
-  app.innerHTML = (novo ? '<span class="kicker">Bem-vindo ao Fechou</span>' : '<a class="back" href="#painel">← Voltar</a>') +
+  app.innerHTML = (novo ? '<span class="kicker">Bem-vindo à Energia Boa</span>' : '<a class="back" href="#painel">← Voltar</a>') +
     "<h1>" + (novo ? "Seu perfil de jogador" : "Meu perfil") + "</h1>" +
     (novo ? '<p class="note">Leva 1 minuto. Com ele, o app sugere jogos do seu nível, na sua cidade e no seu horário.</p>' : "") +
     '<form id="f-perfil" class="card form" novalidate>' +
@@ -834,21 +943,19 @@ VIEWS.perfil = function(){
       '<label class="fld">Cidade<input id="fp-cidade" list="dl-cidades" autocomplete="address-level2" placeholder="Sua cidade" value="' + esc(p.cidade || "") + '"></label>' +
       '<datalist id="dl-cidades">' + CIDADES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
       '<fieldset><legend>Esportes que você pratica</legend><div class="chips-in">' + ESPORTES.map(function(e){ return '<label><input type="checkbox" name="pesp" value="' + esc(e) + '"' + (esportes.indexOf(e) >= 0 ? " checked" : "") + "><span>" + esc(e) + "</span></label>"; }).join("") + "</div></fieldset>" +
-      '<fieldset><legend>Seu nível no esporte principal</legend><div class="seg cinco">' + [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="pniv" value="' + n + '"' + (Number(p.nivel) === n ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
-        '</div><p class="nivel-txt" id="fp-nivel-txt">' + esc(p.nivel ? p.nivel + " · " + NIVEL_DESC[p.nivel] : "Escolha de 1 (iniciante) a 5 (competitivo).") + "</p></fieldset>" +
+      '<fieldset><legend>Seu nível no esporte principal</legend>' + segNivel("pniv", p.nivel) + "</fieldset>" +
       '<fieldset><legend>Quando você pode jogar</legend><div class="chips-in">' + HORARIOS.map(function(x){ return '<label><input type="checkbox" name="phor" value="' + esc(x) + '"' + (horarios.indexOf(x) >= 0 ? " checked" : "") + "><span>" + esc(HORARIO_CURTO[x]) + "</span></label>"; }).join("") + "</div></fieldset>" +
       '<label class="fld">WhatsApp (opcional)<input id="fp-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(p.whatsapp || "") + '"></label>' +
-      '<label class="check"><input id="fp-aceita" type="checkbox"' + (p.aceitaConvites === false ? "" : " checked") + '><span>Quero ser chamado para jogos que combinam comigo</span><small>Só a equipe do Fechou vê seu número.</small></label>' +
+      '<label class="check"><input id="fp-aceita" type="checkbox"' + (p.aceitaConvites === false ? "" : " checked") + '><span>Quero ser chamado para jogos que combinam comigo</span><small>Só a equipe da Energia Boa vê seu número.</small></label>' +
       '<div class="plano"><span class="chip">Plano Free</span><a href="#premium">Conhecer o Premium</a></div>' +
       '<div id="fp-erro" class="banner" role="alert" hidden></div>' +
       '<button class="btn primary block big" type="submit" id="fp-salvar">' + (novo ? "Salvar e continuar" : "Salvar perfil") + "</button>" +
     "</form>" +
-    '<p class="note">Usamos esses dados só para montar jogos. Só a equipe do Fechou vê seu WhatsApp, e você pode apagar o perfil quando quiser. <a href="#privacidade">Privacidade e segurança</a></p>' +
+    '<p class="note">Usamos esses dados só para montar jogos. Só a equipe da Energia Boa vê seu WhatsApp, e você pode apagar o perfil quando quiser. <a href="#privacidade">Privacidade e segurança</a></p>' +
     (novo && !S.admin ? '<p><button type="button" class="link" data-acao="pular-perfil">Preencher depois</button></p>'
       : '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button>' +
         (S.perfil ? ' · <button type="button" class="link" data-acao="apagar-perfil">Apagar meu perfil</button>' : "") + "</p>");
   var f = $("#f-perfil");
-  f.addEventListener("change", function(ev){ if (ev.target.name === "pniv") setText("fp-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]); });
   f.addEventListener("submit", function(ev){
     ev.preventDefault();
     var erroEl = $("#fp-erro");
@@ -886,37 +993,79 @@ function noPeriodo(g, periodo){
   if (periodo === "amanha") return dias === 1;
   if (periodo === "fds") return dias >= 0 && dias <= 6 && (sem === 6 || sem === 0);
   if (periodo === "7d") return dias >= 0 && dias <= 7;
+  if (periodo === "30d") return dias >= 0 && dias <= 30;
   return true;
 }
+function stubData(q){
+  var dt = parseQuando(q);
+  if (!dt) return '<div class="g-data"><span class="d-sem">Sem data</span></div>';
+  var hoje = new Date(), amanha = new Date(); amanha.setDate(hoje.getDate() + 1);
+  var sem = mesmoDia(dt, hoje) ? "Hoje" : mesmoDia(dt, amanha) ? "Amanhã" : DIAS_CURTO[dt.getDay()];
+  return '<div class="g-data"><span class="sr">' + esc(quandoTexto(q)) + "</span>" +
+    '<span class="d-sem" aria-hidden="true">' + sem + '</span><span class="d-num" aria-hidden="true">' + dt.getDate() + '</span><span class="d-hora" aria-hidden="true">' + hora(dt) + "</span></div>";
+}
+function lugar(g){ return esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + (g.tipoLocal === "publica" ? " (quadra pública)" : ""); }
 function cardPublico(g){
   var e = estadoJogo(g);
-  return '<a class="game" href="#convite-' + esc(g.id) + '">' +
-    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span></div>" +
-    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + (g.tipoLocal === "publica" ? " · quadra pública" : "") + "</div>" +
-    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.donoNome ? " · por " + esc(g.donoNome) : "") + "</div></div>" +
-    '<div class="g-count">' + (e.fechado ? '<span class="chip ok">Fechou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>") + "</div></a>";
+  return '<a class="game" href="#convite-' + esc(g.id) + '">' + stubData(g.quando) +
+    '<div class="g-info"><div class="g-title">' + esc(g.esporte) + ' <span class="chip nivel">' + esc(nomeNivel(g.nivel)) + "</span></div>" +
+    '<div class="g-sub">' + lugar(g) + "</div>" +
+    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.donoNome ? ", por " + esc(g.donoNome) : "") + "</div></div>" +
+    '<div class="g-lado">' + (e.fechado ? '<div class="mini ok"><b>Fechou</b><span>time completo</span></div>'
+      : '<div class="mini"><b>' + e.faltam + "</b><span>" + plural(e.faltam, "vaga", "vagas") + "</span></div>") + "</div></a>";
 }
-VIEWS.jogos = function(v){
+var FILTRO_LIMPO = { data: "todas", cidade: "", esporte: "", nivel: "", tipo: "", soVaga: true, dias: [], periodos: [] };
+function filtrosAtuais(){
   var f = lerFiltros();
-  if (f.data == null) f.data = "7d";
-  if (f.soVaga == null) f.soVaga = true;
+  if (["todas", "hoje", "amanha", "7d", "30d"].indexOf(f.data) < 0) f.data = "todas";
+  if (typeof f.soVaga !== "boolean") f.soVaga = true;
   if (f.cidade == null) f.cidade = (S.perfil && S.perfil.cidadeChave) || "";
-  app.innerHTML = "<h1>Jogos abertos</h1>" +
-    '<p class="note">Jogos públicos marcados no app. Toque em um para ver os detalhes e fazer check-in.</p>' +
-    '<details class="card" id="jg-filtros"><summary id="jg-resumo">Filtros</summary><form id="f-filtros" class="filtros" novalidate>' +
-      '<label class="fld">Quando<select id="ff-data"><option value="7d">Próx. 7 dias</option><option value="hoje">Hoje</option><option value="amanha">Amanhã</option><option value="fds">Este fim de semana</option><option value="todas">Qualquer data</option></select></label>' +
-      '<label class="fld">Cidade<select id="ff-cidade"></select></label>' +
-      '<label class="fld">Esporte<select id="ff-esporte"><option value="">Todos</option>' + ESPORTES.map(function(e){ return '<option value="' + esc(e) + '">' + esc(e) + "</option>"; }).join("") + "</select></label>" +
-      '<label class="fld">Nível<select id="ff-nivel"><option value="">Qualquer</option>' + [1, 2, 3, 4, 5].map(function(n){ return '<option value="' + n + '">' + n + " · " + NIVEIS[n] + "</option>"; }).join("") + "</select></label>" +
-      '<label class="fld">Local<select id="ff-tipo"><option value="">Todos</option><option value="privada">Arena</option><option value="publica">Quadra pública</option></select></label>' +
-      '<label class="check"><input id="ff-vaga" type="checkbox"><span>Só jogos com vaga</span></label>' +
-    "</form></details>" +
-    '<div class="sec-head"><h2>Resultados</h2><span class="muted" id="jg-qtd"></span></div>' +
+  if (ESPORTES.indexOf(f.esporte) < 0) f.esporte = "";
+  f.nivel = f.nivel ? String(valorNivel(f.nivel) || "") : "";
+  if (f.tipo !== "publica" && f.tipo !== "privada") f.tipo = "";
+  f.dias = (Array.isArray(f.dias) ? f.dias : []).map(Number).filter(function(d){ return d >= 0 && d <= 6; });
+  f.periodos = (Array.isArray(f.periodos) ? f.periodos : []).filter(function(x){ return PERIODOS.some(function(p){ return p.v === x; }); });
+  return f;
+}
+function maisAtivos(f){ return (f.data !== "todas" ? 1 : 0) + (f.cidade ? 1 : 0) + (f.nivel ? 1 : 0) + (f.tipo ? 1 : 0) + (f.soVaga ? 0 : 1); }
+VIEWS.jogos = function(v){
+  var f = filtrosAtuais();
+  function op(tipo, nome, valor, rotulo, marcado, extra){
+    return '<label class="op"><input type="' + tipo + '" name="' + nome + '" value="' + esc(valor) + '"' + (marcado ? " checked" : "") + "><span>" + esc(rotulo) + (extra || "") + "</span></label>";
+  }
+  app.innerHTML = "<h1>Procurar jogos</h1>" +
+    '<p class="note">Jogos públicos marcados no app. Toque em um para ver os detalhes e entrar.</p>' +
+    '<form id="f-filtros" class="filtros" novalidate>' +
+      '<fieldset><legend>Esporte</legend><div class="rolar">' + op("radio", "fesp", "", "Todos", !f.esporte) +
+        ESPORTES.map(function(e){ return op("radio", "fesp", e, curtoEsporte(e), f.esporte === e); }).join("") + "</div></fieldset>" +
+      '<fieldset><legend>Dia da semana</legend><div class="dias">' +
+        ORDEM_DIAS.map(function(d){ return op("checkbox", "fdia", d, DIAS_CURTO[d], f.dias.indexOf(d) >= 0); }).join("") + "</div></fieldset>" +
+      '<fieldset><legend>Período do dia</legend><div class="periodos">' +
+        PERIODOS.map(function(x){ return op("checkbox", "fper", x.v, x.nome, f.periodos.indexOf(x.v) >= 0, "<small>" + x.horas + "</small>"); }).join("") + "</div></fieldset>" +
+      '<details id="jg-mais"><summary id="jg-mais-s">Mais filtros</summary><div class="filtros-mais">' +
+        '<label class="fld">Quando<select id="ff-data"><option value="todas">Qualquer data</option><option value="hoje">Hoje</option><option value="amanha">Amanhã</option><option value="7d">Próximos 7 dias</option><option value="30d">Próximos 30 dias</option></select></label>' +
+        '<label class="fld">Cidade<select id="ff-cidade"></select></label>' +
+        '<fieldset class="larga"><legend>Nível</legend><div class="niveis-f">' + op("radio", "fniv", "", "Qualquer nível", !f.nivel) +
+          NIVEIS.map(function(n){ return op("radio", "fniv", n.v, n.nome, String(n.v) === f.nivel); }).join("") + "</div></fieldset>" +
+        '<label class="fld larga">Local<select id="ff-tipo"><option value="">Arena ou quadra pública</option><option value="privada">Só arena</option><option value="publica">Só quadra pública</option></select></label>' +
+        '<label class="check"><input id="ff-vaga" type="checkbox"><span>Só jogos com vaga</span></label>' +
+      "</div></details>" +
+    "</form>" +
+    '<div class="sec-head"><h2 id="jg-qtd">Jogos</h2><button type="button" class="link" data-acao="limpar-filtros" id="jg-limpar" hidden>Limpar filtros</button></div>' +
+    '<p class="note" id="jg-resumo"></p>' +
     '<div class="list" id="jg-res"></div>' +
-    '<a class="btn ghost block" href="#novo">Marcar meu jogo</a>';
-  $("#ff-data").value = f.data; $("#ff-esporte").value = f.esporte || ""; $("#ff-nivel").value = f.nivel || ""; $("#ff-tipo").value = f.tipo || ""; $("#ff-vaga").checked = !!f.soVaga;
-  $("#f-filtros").addEventListener("change", function(){
-    f = { data: $("#ff-data").value, cidade: $("#ff-cidade").value, esporte: $("#ff-esporte").value, nivel: $("#ff-nivel").value, tipo: $("#ff-tipo").value, soVaga: $("#ff-vaga").checked };
+    '<a class="btn block" href="#novo">Marcar meu jogo</a>';
+  $("#ff-data").value = f.data; $("#ff-tipo").value = f.tipo; $("#ff-vaga").checked = !!f.soVaga;
+  var form = $("#f-filtros");
+  form.addEventListener("change", function(){
+    f = {
+      esporte: (form.querySelector('input[name="fesp"]:checked') || {}).value || "",
+      dias: $$('input[name="fdia"]:checked', form).map(function(i){ return Number(i.value); }),
+      periodos: $$('input[name="fper"]:checked', form).map(function(i){ return i.value; }),
+      data: $("#ff-data").value, cidade: $("#ff-cidade").value,
+      nivel: (form.querySelector('input[name="fniv"]:checked') || {}).value || "",
+      tipo: $("#ff-tipo").value, soVaga: $("#ff-vaga").checked
+    };
     lsSet("filtros", JSON.stringify(f)); v.update();
   });
   v.update = function(){
@@ -928,29 +1077,42 @@ VIEWS.jogos = function(v){
     sel.innerHTML = '<option value="">Todas</option>' + Object.keys(cidades).sort().map(function(k){ return '<option value="' + esc(k) + '">' + esc(cidades[k]) + "</option>"; }).join("");
     sel.value = f.cidade || "";
     var lista = publicos.filter(function(g){
+      var dt = parseQuando(g.quando);
       if (f.soVaga && estadoJogo(g).fechado) return false;
       if (!noPeriodo(g, f.data)) return false;
+      if (f.dias.length && (!dt || f.dias.indexOf(dt.getDay()) < 0)) return false;
+      if (f.periodos.length && (!dt || f.periodos.indexOf(periodoDe(dt)) < 0)) return false;
       if (f.cidade && (g.cidadeChave || chave(g.cidade)) !== f.cidade) return false;
       if (f.esporte && g.esporte !== f.esporte) return false;
-      if (f.nivel && Math.abs(Number(g.nivel) - Number(f.nivel)) > 1) return false;
+      if (f.nivel && grupoNivel(g.nivel) !== grupoNivel(f.nivel)) return false;
       if (f.tipo && (g.tipoLocal === "publica" ? "publica" : "privada") !== f.tipo) return false;
       return true;
     }).sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
-    var partes = [$("#ff-data").options[$("#ff-data").selectedIndex].textContent, f.cidade ? (cidades[f.cidade] || f.cidade) : "todas as cidades"];
+    var partes = [];
     if (f.esporte) partes.push(f.esporte);
-    if (f.nivel) partes.push("nível " + f.nivel + " (até 1 de diferença)");
-    if (f.tipo) partes.push(f.tipo === "publica" ? "quadra pública" : "arena");
-    if (f.soVaga) partes.push("com vaga");
-    setText("jg-resumo", "Filtros: " + partes.join(" · "));
-    setText("jg-qtd", lista.length + plural(lista.length, " jogo", " jogos"));
+    if (f.dias.length) partes.push(ORDEM_DIAS.filter(function(d){ return f.dias.indexOf(d) >= 0; }).map(function(d){ return DIAS_CURTO[d].toLowerCase(); }).join(", "));
+    if (f.periodos.length) partes.push(PERIODOS.filter(function(x){ return f.periodos.indexOf(x.v) >= 0; }).map(function(x){ return x.nome.toLowerCase(); }).join(" ou "));
+    var quando = { hoje: "hoje", amanha: "amanhã", "7d": "próximos 7 dias", "30d": "próximos 30 dias" }[f.data];
+    if (quando) partes.push(quando);
+    if (f.cidade) partes.push(cidades[f.cidade] || f.cidade);
+    if (f.nivel) partes.push("nível " + nomeNivel(f.nivel).toLowerCase());
+    if (f.tipo) partes.push(f.tipo === "publica" ? "só quadra pública" : "só arena");
+    if (!f.soVaga) partes.push("inclui jogos que fecharam");
+    setText("jg-resumo", partes.length ? "Filtrando por " + partes.join("; ") + "." : "Mostrando todos os jogos com vaga.");
+    var n = maisAtivos(f);
+    setText("jg-mais-s", n ? "Mais filtros (" + n + ")" : "Mais filtros");
+    $("#jg-limpar").hidden = !partes.length;
+    setText("jg-qtd", lista.length ? lista.length + plural(lista.length, " jogo", " jogos") : "Nenhum jogo");
     $("#jg-res").innerHTML = lista.length ? lista.map(cardPublico).join("")
-      : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto com esses filtros. Que tal marcar o seu?" : "Carregando jogos…") + "</div>";
+      : '<div class="empty">' + (!S.carregado.jogos ? "Carregando jogos…"
+        : partes.length ? 'Nenhum jogo com esses filtros.<button type="button" class="btn sm" data-acao="limpar-filtros">Limpar filtros</button>'
+        : "Ainda não tem jogo público com vaga. Que tal marcar o seu?") + "</div>";
   };
 };
 VIEWS.premium = function(v){
   app.innerHTML = '<a class="back" href="#painel">← Voltar</a>' +
-    '<div class="card stack"><span class="kicker">Em breve</span><h1>Fechou Premium</h1>' +
-    "<p>Hoje o Fechou é grátis para todo mundo (plano Free). O Premium vai ter:</p>" +
+    '<div class="card stack"><span class="kicker">Em breve</span><h1>Energia Boa Premium</h1>' +
+    "<p>Hoje a Energia Boa é grátis para todo mundo (plano Free). O Premium vai ter:</p>" +
     '<ul class="beneficios"><li><b>Prioridade:</b> fazer check-in nos jogos públicos 15 minutos antes de quem é Free.</li>' +
     "<li><b>Pontos x1,2:</b> seus jogos valem 20% a mais no ranking de jogadores.</li></ul>" +
     (PRECO_PREMIUM ? "<p>Preço de lançamento: <b>" + esc(PRECO_PREMIUM) + "</b></p>" : "") +
@@ -972,15 +1134,16 @@ VIEWS.premium = function(v){
 
 /* Painel */
 function cardJogo(g){
-  var e = estadoJogo(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
-  var pill = e.fechado ? '<span class="chip ok">Fechou</span>' : (jaPassou(g) ? '<span class="chip">Passou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>");
-  return '<a class="game" href="#jogo-' + esc(g.id) + '">' +
-    '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" +
+  var e = estadoJogo(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0, passou = jaPassou(g) && !e.fechado;
+  var lado = '<div class="mini' + (e.fechado ? " ok" : passou ? " off" : "") + '"><b>' + e.preench + "/" + e.vagas + "</b><span>" +
+    (e.fechado ? "Fechou" : passou ? "passou" : plural(e.faltam, "falta 1", "faltam " + e.faltam)) + "</span></div>";
+  return '<a class="game" href="#jogo-' + esc(g.id) + '">' + stubData(g.quando) +
+    '<div class="g-info"><div class="g-title">' + esc(g.esporte) + ' <span class="chip nivel">' + esc(nomeNivel(g.nivel)) + "</span>" +
       (g.visibilidade === "publico" ? ' <span class="chip">público</span>' : ' <span class="chip">privado</span>') + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
-    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + (g.tipoLocal === "publica" ? " · quadra pública" : "") + "</div>" +
-    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.origem === "jogador" && g.donoNome ? " · por " + esc(g.donoNome) : "") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
-    '<div class="g-count"><span class="num">' + e.preench + "/" + e.vagas + "</span>" + pill + "</div>" +
-    '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></a>';
+    '<div class="g-sub">' + lugar(g) + "</div>" +
+    '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.origem === "jogador" && g.donoNome ? ", por " + esc(g.donoNome) : "") + (Number(g.valor) > 0 ? ". Quadra " + esc(brl(g.valor)) : "") + "</div>" +
+    '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></div>' +
+    '<div class="g-lado">' + lado + "</div></a>";
 }
 VIEWS.painel = function(v){
   app.innerHTML =
@@ -1000,7 +1163,7 @@ VIEWS.painel = function(v){
     blocoPesquisa(true) +
     '<section id="p-arenas-sec" hidden><div class="sec-head"><h2>Arenas que pediram o piloto</h2><button type="button" class="link" data-acao="copiar-link-arenas">Copiar link da página</button></div><div class="list" id="p-arenas"></div></section>' +
     '<section class="card stack" id="p-time"></section>' +
-    '<p class="note"><a href="#perfil">Meu perfil</a> · <a href="#jogos">Jogos abertos</a> · Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
+    '<p class="note"><a href="#perfil">Meu perfil</a> · <a href="#jogos">Procurar jogos</a> · Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   v.update = function(){
     var m = metricas();
     setText("t-reais", brl(m.reais));
@@ -1057,9 +1220,7 @@ VIEWS.novo = function(v){
         '<label><input type="radio" name="visib" value="privado"><span>Privado<small>Só quem tiver o link, para mandar nos seus grupos.</small></span></label>' +
       "</fieldset>" +
       '<label class="fld">Esporte<select id="f-esporte">' + ESPORTES.map(function(e){ return "<option>" + esc(e) + "</option>"; }).join("") + "</select></label>" +
-      '<fieldset><legend>Nível do jogo</legend><div class="seg cinco">' +
-        [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === (Number(pf.nivel) || 3) ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
-      '</div><p class="nivel-txt" id="f-nivel-txt">' + esc((Number(pf.nivel) || 3) + " · " + NIVEL_DESC[Number(pf.nivel) || 3]) + "</p></fieldset>" +
+      '<fieldset><legend>Nível do jogo</legend>' + segNivel("nivel", valorNivel(pf.nivel) || 3) + "</fieldset>" +
       '<label class="fld">Dia e hora<input id="f-quando" type="datetime-local" step="1800" value="' + proximaHora() + '"></label>' +
       '<fieldset class="seg"><legend>Onde vai ser</legend>' +
         '<label><input type="radio" name="tipo" value="privada" checked><span>Arena<small>Quadra alugada. Quem organiza combina o horário com a arena.</small></span></label>' +
@@ -1102,9 +1263,6 @@ VIEWS.novo = function(v){
   esp.addEventListener("change", function(){ tot.value = TOTAL_PADRAO[esp.value] || 4; mostrarFaltam(); });
   tot.addEventListener("input", mostrarFaltam);
   ja.addEventListener("input", mostrarFaltam);
-  f.addEventListener("change", function(ev){
-    if (ev.target.name === "nivel") setText("f-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]);
-  });
   mostrarFaltam();
   f.addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -1166,9 +1324,9 @@ function esqueletoJogo(equipe){
     '<section class="card score-card" id="j-score" aria-live="polite"></section>' +
     (equipe
       ? '<section><div class="sec-head"><h2>Quem combina</h2><span class="muted" id="j-nmatch"></span></div>' +
-        '<p class="note">Mesmo esporte, nível até 1 de diferença e horário que a pessoa marcou no formulário.</p>' +
+        '<p class="note">Combina: mesmo esporte, mesmo nível e horário que a pessoa marcou. Quase: nível vizinho ou outro horário.</p>' +
         '<div class="list" id="j-match"></div></section>'
-      : '<p class="note">Mande o link nos seus grupos. A equipe do Fechou também chama quem combina com o seu jogo.</p>') +
+      : '<p class="note">Mande o link nos seus grupos. A equipe da Energia Boa também chama quem combina com o seu jogo.</p>') +
     '<section><h2>Confirmados</h2><div class="list" id="j-confs"></div>' +
       '<form id="f-addconf" class="inline" autocomplete="off"><label class="sr" for="f-addconf-nome">Nome de quem confirmou</label>' +
       '<input id="f-addconf-nome" placeholder="Alguém confirmou no WhatsApp? Nome">' +
@@ -1192,7 +1350,7 @@ function rowMatch(g, x, ctx){
   var chip = av.score === 2 ? '<span class="chip ok">Combina</span>' : '<span class="chip warn">' + esc(av.motivo) + "</span>";
   var fx = faixas(g.quando);
   var bate = (j.horarios || []).filter(function(h){ return fx.indexOf(h) >= 0; });
-  var sub = (NIVEIS[j.nivel] || "Nível ?") + " · " + (bate.length ? bate.map(function(h){ return HORARIO_CURTO[h] || h; }).join(", ") : "marcou " + (j.horarios || []).slice(0, 2).map(function(h){ return HORARIO_CURTO[h] || h; }).join(", "));
+  var sub = (nomeNivel(j.nivel) || "Nível ?") + " · " + (bate.length ? bate.map(function(h){ return HORARIO_CURTO[h] || h; }).join(", ") : "marcou " + (j.horarios || []).slice(0, 2).map(function(h){ return HORARIO_CURTO[h] || h; }).join(", "));
   var estado = c ? '<span class="chip ok">No jogo</span>' : (cv ? '<span class="muted">Convidado às ' + esc(hhmm(cv.em)) + "</span>" : "");
   var acoes = "";
   if (c) acoes = '<button class="btn ghost sm" type="button" data-acao="tirar" data-conf="' + esc(c.id) + '">Tirar do jogo</button>';
@@ -1211,9 +1369,9 @@ function pintarJogo(v, g){
   $("#j-head-main").innerHTML =
     '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.visibilidade === "publico" ? '<span class="chip">público no app</span>' : '<span class="chip">privado</span>') + '<span class="chip">' + (g.tipoLocal === "publica" ? "quadra pública" : "arena") + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
     "<h1>" + esc(g.esporte) + "</h1>" +
-    '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div>" +
+    '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(nomeNivel(g.nivel)) + ", " + esc(g.total) + " jogadores</div>" +
     (v.equipe && g.origem === "jogador" && g.donoNome
-      ? "<div>Marcado por " + esc(g.donoNome) + ((g.donoZap || v.contato) ? ' · <a href="' + esc(waLink(g.donoZap || v.contato, "Oi, " + g.donoNome + "! Aqui é da equipe do Fechou, sobre o seu jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + ".")) + '" target="_blank" rel="noopener">falar no WhatsApp</a>' : "") + "</div>"
+      ? "<div>Marcado por " + esc(g.donoNome) + ((g.donoZap || v.contato) ? ' · <a href="' + esc(waLink(g.donoZap || v.contato, "Oi, " + g.donoNome + "! Aqui é da equipe da Energia Boa, sobre o seu jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + ".")) + '" target="_blank" rel="noopener">falar no WhatsApp</a>' : "") + "</div>"
       : "") + "</div>";
   if (!v.editandoPreco) $("#j-preco").innerHTML = linhaPreco(g, v.equipe);
 
@@ -1223,7 +1381,7 @@ function pintarJogo(v, g){
     '<div class="bar' + (e.fechado ? " full" : "") + '"><span></span></div>' +
     (e.fechado
       ? '<div class="status ok">Fechou!' + (v.equipe && g.tipoLocal !== "publica" && Number(g.valor) > 0 ? " " + esc(brl(g.valor)) + " de quadra para a arena" : " Time completo.") + "</div>" +
-        '<div class="muted">' + (g.tipoLocal === "publica" ? "Quadra pública não tem reserva: cheguem cedo." : "O Fechou não reserva a quadra: confirme o horário com a arena.") + "</div>"
+        '<div class="muted">' + (g.tipoLocal === "publica" ? "Quadra pública não tem reserva: cheguem cedo." : "A Energia Boa não reserva a quadra: confirme o horário com a arena.") + "</div>"
       : '<div class="status warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + '</div><div class="muted">' +
         (v.equipe && g.tipoLocal !== "publica" && Number(g.valor) > 0 ? "Quando fechar, são " + esc(brl(g.valor)) + " de quadra que não iam acontecer." : "Mande o link para fechar mais rápido.") + "</div>") +
     (e.n > e.vagas ? '<div class="muted">' + (e.n - e.vagas) + " na espera</div>" : "");
@@ -1348,7 +1506,7 @@ function pintarAcao(v, g, modo){
         : '<div class="status ok">Você está no jogo!</div>') +
       (zap
         ? (naEspera ? "" : "<p>Combine os detalhes com " + esc(quem) + " pelo WhatsApp.</p>") +
-          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(zap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! " + (naEspera ? "Entrei na lista de espera do" : "Confirmei no") + " jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
+          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(zap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! " + (naEspera ? "Entrei na lista de espera do" : "Confirmei no") + " jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pela Energia Boa. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
         : (naEspera ? "" : "<p>Combine os detalhes " + (meu ? "com " + esc(quem) : "no grupo onde você recebeu o convite") + ".</p>")) +
       (meu
         ? '<button class="btn ghost block" type="button" data-acao="desistir" data-conf="' + esc(m.conf.id) + '" data-jogo="' + esc(g.id) + '">Não vou mais (libera a vaga)</button>'
@@ -1379,14 +1537,14 @@ VIEWS.convite = function(v){
     }
     if (!v.montado){
       corpo.innerHTML = '<section class="card invite" id="cv-head"></section><section class="card score-card" id="cv-score" aria-live="polite"></section><section class="card" id="cv-acao"></section>' +
-        '<p class="note"><a href="#jogos">Ver outros jogos abertos</a> · <a href="#novo">Marcar o meu jogo</a></p>';
+        '<div class="acoes-rodape"><a class="btn" href="#jogos">' + ico("busca") + 'Procurar outros jogos</a><a class="btn" href="#novo">' + ico("mais") + "Marcar o meu jogo</a></div>";
       v.montado = true; v.modo = null;
     }
     var e = estadoJogo(g), pp = porPessoa(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
     $("#cv-head").innerHTML = '<span class="kicker">' + (jaSao(g) >= 1 ? "Falta gente nesse jogo" : "Jogo com vaga") + "</span><h1>" + esc(g.esporte) + "</h1>" +
       '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + ' <span class="chip">' + (g.tipoLocal === "publica" ? "quadra pública" : "arena") + "</span></div>" +
       (g.donoNome ? "<div>Quem organiza: " + esc(g.donoNome) + "</div>" : "") +
-      "<div>Nível " + esc((NIVEIS[g.nivel] || "").toLowerCase()) + " · " + esc(g.total) + " jogadores</div>" +
+      "<div>Nível " + esc(nomeNivel(g.nivel).toLowerCase()) + ", " + esc(g.total) + " jogadores</div>" +
       (pp ? "<div>" + esc(brl(pp)) + ' por pessoa <span class="muted">(quadra ' + esc(brl(g.valor)) + " dividida por " + esc(g.total) + ")</span></div>" : "") + "</div>" +
       '<p class="note">' + (g.tipoLocal === "publica" ? "Quadra pública não tem reserva: cheguem cedo." : "O horário da quadra é combinado por quem organiza, direto com a arena.") + "</p>";
     var nomes = [], semNome = 0, sc = $("#cv-score");
@@ -1415,7 +1573,7 @@ VIEWS.convite = function(v){
 function rowJogador(j){
   var nome = nomeJ(j);
   return '<div class="prow"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
-    '<div><div class="pname">' + esc(nome) + ' <span class="chip">' + esc(NIVEIS[j.nivel] || "Nível ?") + '</span><span class="chip">' + (j.origem === "tally" ? "formulário" : j.origem === "app" ? "app" : "manual") + "</span></div>" +
+    '<div><div class="pname">' + esc(nome) + ' <span class="chip nivel">' + esc(nomeNivel(j.nivel) || "Nível ?") + '</span><span class="chip">' + (j.origem === "tally" ? "formulário" : j.origem === "app" ? "app" : "manual") + "</span></div>" +
     '<div class="psub">' + esc((j.esportes || []).join(", ")) + (j.cidade ? " · " + esc(j.cidade) : "") + "</div>" +
     '<div class="psub">' + esc((j.horarios || []).map(function(h){ return HORARIO_CURTO[h] || h; }).join(" · ")) + "</div></div>" +
     '<div class="pact">' + (j.origem === "app" ? "" : '<button class="btn ghost sm danger" type="button" data-acao="remover-jogador" data-id="' + esc(j.id) + '">Remover</button>') + "</div></div>";
@@ -1469,14 +1627,13 @@ VIEWS.jogadores = function(v){
         '<label class="fld">Nome<input id="fj-nome"></label>' +
         '<label class="fld">WhatsApp com DDD<input id="fj-zap" inputmode="tel" placeholder="(48) 9 9999-9999"></label>' +
         '<fieldset><legend>Esportes</legend><div class="chips-in">' + ESPORTES.map(function(e){ return '<label><input type="checkbox" name="esp" value="' + esc(e) + '"><span>' + esc(e) + "</span></label>"; }).join("") + "</div></fieldset>" +
-        '<fieldset><legend>Nível</legend><div class="seg cinco">' + [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="niv" value="' + n + '" aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") + '</div><p class="nivel-txt" id="fj-nivel-txt">Escolha de 1 (iniciante) a 5 (competitivo).</p></fieldset>' +
+        '<fieldset><legend>Nível</legend>' + segNivel("niv", 0) + "</fieldset>" +
         '<fieldset><legend>Quando pode jogar</legend><div class="chips-in">' + HORARIOS.map(function(h){ return '<label><input type="checkbox" name="hor" value="' + esc(h) + '"><span>' + esc(HORARIO_CURTO[h]) + "</span></label>"; }).join("") + "</div></fieldset>" +
         '<div id="fj-erro" class="banner" role="alert" hidden></div>' +
         '<button class="btn primary block" type="submit">Salvar jogador</button>' +
       "</form></details>";
   var f = $("#f-jog");
   $("#f-imp").addEventListener("change", importarArquivo);
-  f.addEventListener("change", function(ev){ if (ev.target.name === "niv") setText("fj-nivel-txt", ev.target.value + " · " + NIVEL_DESC[Number(ev.target.value)]); });
   f.addEventListener("submit", function(ev){
     ev.preventDefault();
     var erroEl = $("#fj-erro");
@@ -1493,7 +1650,7 @@ VIEWS.jogadores = function(v){
     if (!horarios.length) return falha("Marque quando a pessoa pode jogar.");
     erroEl.hidden = true;
     gravar(function(){ return S.db.doc("jogadores/" + novoId()).set({ nome: nome, whatsapp: zap, esportes: esportes, nivel: Number(nivEl.value), horarios: horarios, origem: "manual", criadoEm: Date.now() }); })
-      .then(function(r){ if (r.ok){ f.reset(); setText("fj-nivel-txt", "Escolha de 1 (iniciante) a 5 (competitivo)."); $("#jg-add").open = false; toast("Jogador salvo"); } });
+      .then(function(r){ if (r.ok){ f.reset(); $("#jg-add").open = false; toast("Jogador salvo"); } });
   });
   v.update = function(){
     var lista = todosJogadores().sort(function(a, b){ return nomeJ(a).localeCompare(nomeJ(b)); });
@@ -1542,6 +1699,9 @@ document.addEventListener("click", function(ev){
     lsSet("arenaPiloto", null); pintarPedidoArena();
   } else if (a === "copiar-link-arenas"){
     copiar(location.origin + location.pathname + "#arenas", "Link copiado");
+  } else if (a === "limpar-filtros"){
+    lsSet("filtros", JSON.stringify(FILTRO_LIMPO));
+    if (V.nome === "jogos") montar();
   } else if (a === "filtrar-esporte"){
     var ff = lerFiltros(); ff.esporte = t.getAttribute("data-esporte"); lsSet("filtros", JSON.stringify(ff));
     location.hash = "jogos";
@@ -1646,7 +1806,7 @@ function garantirCodigo(){
     .then(function(){ S.criandoCodigo = false; });
 }
 function conviteTime(cod){
-  return "Painel do Fechou: " + location.origin + location.pathname + "\n1. Toque em \"Entrar com Google\"\n2. Digite o código do time: " + cod;
+  return "Painel da Energia Boa: " + location.origin + location.pathname + "\n1. Toque em \"Entrar com Google\"\n2. Digite o código do time: " + cod;
 }
 
 /* ---------- Dados ao vivo ---------- */

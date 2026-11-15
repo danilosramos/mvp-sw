@@ -1,4 +1,4 @@
-# Arquitetura do Fechou
+# Arquitetura da Energia Boa
 
 App de página única no GitHub Pages (`index.html`), com Firebase: login Google e Firestore ao vivo. Sem servidor próprio. As permissões ficam em `firestore.rules`.
 
@@ -30,7 +30,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
   actor Ana as Ana (sozinha)
-  participant App as Fechou
+  participant App as Energia Boa
   participant DB as Firestore
   actor Beto as Beto (convidado)
   actor Time as Time da arena
