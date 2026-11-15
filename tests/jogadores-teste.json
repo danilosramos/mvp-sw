@@ -1,0 +1,11 @@
+[
+  {"id":"tally-t1","nome":"Alfa","whatsapp":"5548900000001","esportes":["Vôlei de praia"],"nivel":2,"horarios":["Sábado à tarde ou noite","Tarde em dia útil","Noite em dia útil","Domingo de manhã","Domingo à tarde ou noite"],"origem":"tally"},
+  {"id":"tally-t2","nome":"Bravo","whatsapp":"5548900000002","esportes":["Vôlei de praia"],"nivel":3,"horarios":["Noite em dia útil","Sábado de manhã","Sábado à tarde ou noite","Domingo de manhã","Domingo à tarde ou noite"],"origem":"tally"},
+  {"id":"tally-t3","nome":"Charlie Delta","whatsapp":"5547900000003","esportes":["Vôlei de praia"],"nivel":3,"horarios":["Tarde em dia útil","Sábado à tarde ou noite","Domingo à tarde ou noite"],"origem":"tally"},
+  {"id":"tally-t4","nome":"Eco","whatsapp":"5548900000004","esportes":["Vôlei de praia"],"nivel":2,"horarios":["Noite em dia útil"],"origem":"tally"},
+  {"id":"tally-t5","nome":"Foxtrot","whatsapp":"5548900000005","esportes":["Vôlei de praia","Futevôlei"],"nivel":2,"horarios":["Noite em dia útil","Tarde em dia útil","Domingo à tarde ou noite"],"origem":"tally"},
+  {"id":"tally-t6","nome":"","whatsapp":"5548900000006","esportes":["Vôlei de praia"],"nivel":3,"horarios":["Sábado à tarde ou noite","Domingo à tarde ou noite","Noite em dia útil"],"origem":"tally"},
+  {"id":"tally-t7","nome":"Golf","whatsapp":"5511900000007","esportes":["Futebol society ou futsal"],"nivel":3,"horarios":["Noite em dia útil","Sábado à tarde ou noite","Domingo de manhã"],"origem":"tally"},
+  {"id":"tally-t8","nome":"","whatsapp":"5548900000008","esportes":["Beach tennis"],"nivel":2,"horarios":["Manhã em dia útil","Tarde em dia útil","Noite em dia útil","Sábado de manhã"],"origem":"tally"},
+  {"id":"x","nome":"Inválido","esportes":["Vôlei de praia"],"nivel":9,"horarios":[]}
+]

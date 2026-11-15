@@ -6,6 +6,8 @@ rules_version = '2';
 // - Jogador sem conta: só cria a própria confirmação, num jogo que existe.
 // - Lista de jogadores (com WhatsApp) e convites: só o time lê e escreve.
 // - Perfil de jogador: só a própria pessoa e o time leem (tem WhatsApp).
+// - WhatsApp de quem organiza fica em jogos/{id}/contato: só para quem entrou no jogo com conta.
+// - Jogo público exige conta para entrar; jogo privado (por link) aceita só o nome.
 // - Time = conta com um documento em /admins/{uid}. A pessoa entra no time com o código do time.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,7 +24,7 @@ service cloud.firestore {
 
     function jogoDeJogadorValido() {
       return request.auth != null
-        && request.resource.data.keys().hasOnly(['arena', 'esporte', 'nivel', 'quando', 'total', 'vagas', 'valor', 'situacao', 'teste', 'criadoEm', 'donoUid', 'donoNome', 'donoZap', 'origem', 'visibilidade', 'cidade', 'cidadeChave'])
+        && request.resource.data.keys().hasOnly(['arena', 'esporte', 'nivel', 'quando', 'total', 'vagas', 'valor', 'situacao', 'teste', 'criadoEm', 'donoUid', 'donoNome', 'donoZap', 'origem', 'visibilidade', 'cidade', 'cidadeChave', 'tipoLocal'])
         && request.resource.data.donoUid == request.auth.uid
         && request.resource.data.origem == 'jogador'
         && request.resource.data.teste == false
@@ -50,7 +52,8 @@ service cloud.firestore {
         && request.resource.data.get('cidade', '') is string
         && request.resource.data.get('cidade', '').size() <= 60
         && request.resource.data.get('cidadeChave', '') is string
-        && request.resource.data.get('cidadeChave', '').size() <= 60;
+        && request.resource.data.get('cidadeChave', '').size() <= 60
+        && request.resource.data.get('tipoLocal', 'privada') in ['publica', 'privada'];
     }
 
     function perfilValido(uid) {
@@ -73,7 +76,8 @@ service cloud.firestore {
         && request.resource.data.plano == 'free';
     }
 
-    function confirmacaoPublicaValida() {
+    // Check-in pelo link. Com conta, o id é jogo_uid (um por pessoa). Jogo público exige conta.
+    function confirmacaoPublicaValida(id) {
       return request.resource.data.keys().hasOnly(['jogoId', 'nome', 'via', 'criadoEm', 'uid'])
         && request.resource.data.keys().hasAll(['jogoId', 'nome', 'via', 'criadoEm'])
         && request.resource.data.via == 'link'
@@ -83,8 +87,11 @@ service cloud.firestore {
         && request.resource.data.jogoId is string
         && request.resource.data.jogoId.size() <= 40
         && request.resource.data.criadoEm is number
-        && (!('uid' in request.resource.data) || (request.auth != null && request.resource.data.uid == request.auth.uid))
-        && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId));
+        && (!('uid' in request.resource.data) || (request.auth != null && request.resource.data.uid == request.auth.uid
+            && id == request.resource.data.jogoId + '_' + request.auth.uid))
+        && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId))
+        && (get(/databases/$(database)/documents/jogos/$(request.resource.data.jogoId)).data.get('visibilidade', 'privado') != 'publico'
+            || ('uid' in request.resource.data));
     }
 
     // Quem marcou o jogo adiciona quem confirmou pelo WhatsApp.
@@ -146,9 +153,20 @@ service cloud.firestore {
       allow delete: if ehEquipe() || (request.auth != null && resource.data.donoUid == request.auth.uid);
     }
 
+    // WhatsApp de quem organiza: só o time, o dono e quem entrou no jogo com conta.
+    match /jogos/{id}/contato/{doc} {
+      allow read: if ehEquipe() || ehDonoDoJogo(id)
+        || (request.auth != null && exists(/databases/$(database)/documents/confirmacoes/$(id + '_' + request.auth.uid)));
+      allow create, update: if ehEquipe() || (ehDonoDoJogo(id)
+        && request.resource.data.keys().hasOnly(['zap'])
+        && request.resource.data.zap is string
+        && request.resource.data.zap.size() <= 15);
+      allow delete: if ehEquipe() || ehDonoDoJogo(id);
+    }
+
     match /confirmacoes/{id} {
       allow read: if true;
-      allow create: if ehEquipe() || confirmacaoPublicaValida() || confirmacaoDoDonoValida();
+      allow create: if ehEquipe() || confirmacaoPublicaValida(id) || confirmacaoDoDonoValida();
       allow update: if ehEquipe();
       // Quem fez check-in logado pode desistir e liberar a vaga.
       allow delete: if ehEquipe() || ehDonoDoJogo(resource.data.jogoId)

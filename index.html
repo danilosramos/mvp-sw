@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0F5C6E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fechou">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <title>Fechou</title>
 <meta name="description" content="Jogos com vaga: a arena abre um horário, quem combina recebe o convite no WhatsApp e confirma em um toque.">
 <meta property="og:title" content="Fechou: jogo com vaga">
@@ -29,6 +36,10 @@
   --warn:#8A5300; --warn-bg:#FFEFC2;
   --zap:#0F7A43; --zap-ink:#FFFFFF;
   --danger:#B42318;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-full:999px;
+  --e1:0 1px 2px rgba(30,42,50,.06); --e2:0 8px 24px rgba(30,42,50,.14);
+  --toque:48px;
   --font-display:"Outfit",system-ui,sans-serif;
   --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
@@ -64,28 +75,35 @@ h2{font-size:20px;line-height:1.2}
 .brand{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--ink);text-decoration:none;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
 .brand small{font-family:var(--font-body);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
 nav{display:flex;gap:2px;flex-wrap:nowrap;justify-content:flex-end}
-nav a,nav button{font:600 14px var(--font-body);color:var(--muted);text-decoration:none;padding:8px 9px;border-radius:10px;border:0;background:none;cursor:pointer;min-height:38px;white-space:nowrap}
-@media (max-width:440px){.brand small{display:none}.top{padding:8px 10px}nav a,nav button{padding:8px 6px;font-size:13.5px}}
-nav a[aria-current="page"]{color:var(--ink);background:var(--bg)}
+nav a,nav button{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--font-body);color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:var(--r-sm);border:0;background:none;cursor:pointer;min-height:40px;white-space:nowrap}
+nav svg{width:20px;height:20px;flex:none}
+nav a[aria-current="page"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 nav button[aria-pressed="true"]{color:var(--accent)}
 .aviso{max-width:560px;margin:0 auto;padding:0 16px}
+.aviso{display:grid;gap:8px}
 .aviso:not(:empty){padding-top:12px}
+.faixa{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600}
+.faixa .btn:not(.ghost){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:600 14px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-full);padding:10px 14px;min-height:44px;cursor:pointer}
+.chips button:hover{border-color:var(--accent)}
+.num,.score,.g-sub,.psub,.meta{font-variant-numeric:tabular-nums}
 
 .wrap{max-width:560px;margin:0 auto;padding:16px 16px 56px;display:grid;gap:18px}
 .stack{display:grid;gap:18px}
 section{display:grid;gap:10px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 1px 2px rgba(30,42,50,.05)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;box-shadow:var(--e1)}
 .muted{color:var(--muted)}
 .note{color:var(--muted);font-size:14px}
 .back{font-weight:600;text-decoration:none;font-size:15px;justify-self:start}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .kicker{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent)}
-.banner{padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:14px}
-.empty{padding:16px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center;font-size:15px}
+.banner{padding:10px 12px;border-radius:var(--r-md);background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:14px}
+.empty{padding:16px;border:1px dashed var(--line);border-radius:var(--r-md);color:var(--muted);text-align:center;font-size:15px}
 
 /* Números do painel */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;align-content:start}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;display:grid;gap:2px;align-content:start}
 .tile.big{grid-column:1/-1;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .tile .lbl{font-size:13px;font-weight:700;color:var(--muted)}
 .tile.big .lbl,.tile.big .sub{color:inherit;opacity:.78}
@@ -95,18 +113,22 @@ section{display:grid;gap:10px}
 .tile .sub{font-size:13px;color:var(--muted)}
 
 /* Botões e marcas */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px var(--font-body);text-decoration:none;cursor:pointer;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--toque);padding:10px 16px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px var(--font-body);text-decoration:none;cursor:pointer;text-align:center}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--cta);color:var(--cta-ink);border-color:var(--cta)}
 .btn.zap{background:var(--zap);color:var(--zap-ink);border-color:var(--zap)}
 .btn.block{width:100%}
 .btn.big{min-height:58px;font-size:20px}
-.btn.sm{min-height:38px;padding:6px 12px;font-size:14px;border-radius:10px}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:14px;border-radius:var(--r-sm)}
 .btn.danger{color:var(--danger)}
-.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn{transition:transform .08s ease,background-color .15s ease,border-color .15s ease}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.6;cursor:progress}
+.btn[disabled]::after{content:"";width:16px;height:16px;flex:none;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:gira .7s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
 .link{border:0;background:none;padding:0 2px;font:600 15px var(--font-body);color:var(--accent);text-decoration:underline;cursor:pointer}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:var(--r-full);font-size:12.5px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
 .chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
 .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
 .chip.test{background:transparent;border-style:dashed}
@@ -121,15 +143,15 @@ section{display:grid;gap:10px}
 
 /* Jogos */
 .list{display:grid;gap:8px}
-.game{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:inherit}
+.game{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);text-decoration:none;color:inherit}
 .game:hover{border-color:var(--accent)}
 .g-title{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .g-sub{font-size:14px;color:var(--muted)}
 .g-count{display:grid;justify-items:end;gap:4px}
 .g-count .num{font-size:24px}
 .game .bar{grid-column:1/-1}
-.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
-.bar>span{display:block;width:0;height:100%;background:var(--warn);border-radius:99px;transition:width .5s ease}
+.bar{height:8px;border-radius:var(--r-full);background:var(--line);overflow:hidden}
+.bar>span{display:block;width:0;height:100%;background:var(--warn);border-radius:var(--r-full);transition:width .5s ease}
 .bar.full>span{background:var(--ok-fill)}
 
 /* Placar */
@@ -146,7 +168,7 @@ section{display:grid;gap:10px}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.05)}100%{transform:scale(1)}}
 
 /* Pessoas */
-.prow{display:grid;grid-template-columns:40px 1fr;gap:10px 12px;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.prow{display:grid;grid-template-columns:40px 1fr;gap:10px 12px;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
 .prow.in{border-color:var(--ok)}
 .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--sand);color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:17px}
 .pname{font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -158,7 +180,7 @@ section{display:grid;gap:10px}
 /* Formulários */
 .form{display:grid;gap:16px}
 .fld{display:grid;gap:6px;font-weight:600;font-size:14px}
-input,select,textarea{font:500 16px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-height:46px}
+input,select,textarea{font:500 16px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;width:100%;min-height:var(--toque)}
 textarea{min-height:120px;resize:vertical}
 fieldset{border:0;margin:0;padding:0;min-width:0}
 legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
@@ -166,7 +188,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
 .seg legend{grid-column:1/-1;float:left;width:100%}
 .seg label{position:relative;cursor:pointer;display:block}
 .seg input,.chips-in input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;pointer-events:none}
-.seg span{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:700;background:var(--surface);height:100%}
+.seg span{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);font-weight:700;background:var(--surface);height:100%}
 .seg small{font-weight:500;color:var(--muted);font-size:13px;line-height:1.3}
 .seg input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
 .seg input:focus-visible+span,.chips-in input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
@@ -179,7 +201,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
 .check small{grid-column:2;font-weight:500;color:var(--muted);font-size:13px;line-height:1.35}
 .chips-in{display:flex;flex-wrap:wrap;gap:6px}
 .chips-in label{position:relative}
-.chips-in span{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--line);font-size:14px;font-weight:600;cursor:pointer;background:var(--surface)}
+.chips-in span{display:inline-block;padding:8px 12px;border-radius:var(--r-full);border:1px solid var(--line);font-size:14px;font-weight:600;cursor:pointer;background:var(--surface)}
 .chips-in input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .inline input{flex:1 1 180px;width:auto}
@@ -189,15 +211,23 @@ details[open]>summary{margin-bottom:14px}
 /* Convite */
 .invite{display:grid;gap:8px}
 .meta{display:grid;gap:3px;font-size:17px}
-.msg{white-space:pre-wrap;font:500 15px/1.45 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:0;overflow-wrap:anywhere}
+.msg{white-space:pre-wrap;font:500 15px/1.45 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;margin:0;overflow-wrap:anywhere}
 
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:12px;font-weight:600;font-size:15px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:var(--r-md);font-weight:600;font-size:15px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
 #toast.on{opacity:1}
 .copia{position:fixed;inset:0;background:rgba(5,12,15,.5);display:grid;place-items:center;padding:16px;z-index:25}
 .copia[hidden]{display:none}
 .copia .card{width:min(520px,100%);display:grid;gap:12px}
 #confete{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
-@media (prefers-reduced-motion: reduce){.pop{animation:none}.bar>span,#toast{transition:none}}
+@media (max-width:719px){
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);justify-content:space-around;gap:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+  nav:empty{display:none}
+  nav a,nav button{flex:1 1 0;flex-direction:column;gap:2px;min-height:52px;padding:6px 2px;font-size:12px;justify-content:center}
+  nav svg{width:24px;height:24px}
+  .wrap{padding-bottom:112px}
+  #toast{bottom:88px}
+}
+@media (prefers-reduced-motion: reduce){.btn,.btn[disabled]::after{transition:none;animation:none}.pop{animation:none}.bar>span,#toast{transition:none}}
 </style>
 </head>
 <body>
@@ -242,6 +272,7 @@ var S = {
   estado: "carregando", db: null, conta: null, usuario: null, authPronto: false, verificandoAdmin: false, admin: false,
   jogos: [], confs: [], jogadores: [], convites: [], configs: [], perfis: [], interesses: [], criandoCodigo: false,
   perfil: null, perfilCarregado: false, querPremium: false, subsMeus: [], depoisDoPerfil: "",
+  promptInstalar: null, swEspera: null, recarregarAoTrocar: false,
   carregado: {}, confirmado: {}, lento: false, erroCarga: null, subsAdm: [], timerLento: null,
   palco: lsGet("palco") === "1"
 };
@@ -338,7 +369,7 @@ function avaliar(j, g){
 }
 
 function metricas(){
-  var m = { reais: 0, semPreco: 0, fechados: 0, vagos: 0, salvos: 0, preench: 0, vagasTot: 0, jogosReais: 0 };
+  var m = { reais: 0, semPreco: 0, publicos: 0, fechados: 0, vagos: 0, salvos: 0, preench: 0, vagasTot: 0, jogosReais: 0 };
   S.jogos.forEach(function(g){
     if (g.teste) return;
     m.jogosReais++;
@@ -347,7 +378,8 @@ function metricas(){
     if (e.fechado){
       m.fechados++;
       if (g.situacao === "cancelar") m.salvos++; else m.vagos++;
-      if (Number(g.valor) > 0) m.reais += Number(g.valor); else m.semPreco++;
+      if (g.tipoLocal === "publica") m.publicos++;
+      else if (Number(g.valor) > 0) m.reais += Number(g.valor); else m.semPreco++;
     }
   });
   return m;
@@ -407,9 +439,14 @@ function msgErro(e){
   if (c === "invalid-argument") return "Algum dado está inválido. Confira e tente de novo.";
   if (c === "resource-exhausted" || c === "quota-exceeded") return "O banco atingiu o limite. Espere um pouco e tente de novo.";
   if (c === "not-found") return "Esse item não existe mais.";
+  if (c === "offline") return "Sem internet. Tente de novo quando a conexão voltar.";
   return "Não consegui salvar. Confira a internet e tente de novo.";
 }
 function gravar(fn, silencioso){
+  if (navigator.onLine === false){
+    if (!silencioso) toast(msgErro({ code: "offline" }));
+    return Promise.resolve({ ok: false, code: "offline" });
+  }
   var tentativa = 0;
   function rodar(){
     return Promise.resolve().then(fn).then(function(){ return { ok: true }; }, function(e){
@@ -465,13 +502,28 @@ function festa(){
   }
   requestAnimationFrame(quadro);
 }
+function emApp(){ return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true; }
+function ehIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent || ""); }
+function faixaInstalar(){
+  if (emApp() || lsGet("instalarDepois") === "1" || ["inicio", "meus", "jogos", "painel"].indexOf(V.nome) < 0) return "";
+  if (S.promptInstalar) return '<div class="faixa"><span>Instale o Fechou na tela inicial.</span><span class="row-btns">' +
+    '<button class="btn ghost sm" type="button" data-acao="instalar-depois">Agora não</button>' +
+    '<button class="btn sm" type="button" data-acao="instalar">Instalar</button></span></div>';
+  if (ehIOS()) return '<div class="faixa"><span>No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”.</span>' +
+    '<button class="btn ghost sm" type="button" data-acao="instalar-depois">Entendi</button></div>';
+  return "";
+}
+var avisoAtual = null;
 function avisos(){
-  var m = "";
-  if (S.estado === "pronto"){
-    if (S.erroCarga) m = "A conexão com os dados caiu. Recarregue a página.";
-    else if (S.lento) m = "Os dados estão demorando para chegar. Confira a internet: o que aparece pode estar desatualizado.";
+  var h = "";
+  if (navigator.onLine === false) h += '<div class="banner" role="status">Você está sem internet. O que aparece pode estar desatualizado, e as ações voltam quando a conexão voltar.</div>';
+  else if (S.estado === "pronto"){
+    if (S.erroCarga) h += '<div class="banner" role="alert">A conexão com os dados caiu. Recarregue a página.</div>';
+    else if (S.lento) h += '<div class="banner" role="status">Os dados estão demorando para chegar. Confira a internet: o que aparece pode estar desatualizado.</div>';
   }
-  $("#aviso").innerHTML = m ? '<div class="banner">' + esc(m) + "</div>" : "";
+  if (S.swEspera) h += '<div class="faixa"><span>Tem uma versão nova do Fechou.</span><button class="btn sm" type="button" data-acao="atualizar-app">Atualizar</button></div>';
+  h += faixaInstalar();
+  if (h !== avisoAtual){ avisoAtual = h; $("#aviso").innerHTML = h; }
 }
 
 /* ---------- Rotas ---------- */
@@ -479,11 +531,11 @@ function rota(){
   var h = (location.hash || "").replace(/^#/, "");
   if (h.indexOf("convite-") === 0) return { nome: "convite", id: h.slice(8) };
   if (h.indexOf("jogo-") === 0) return { nome: "jogo", id: h.slice(5) };
-  if (["novo", "jogadores", "perfil", "jogos", "premium"].indexOf(h) >= 0) return { nome: h };
+  if (["novo", "jogadores", "perfil", "jogos", "premium", "privacidade"].indexOf(h) >= 0) return { nome: h };
   return { nome: "painel" };
 }
 function montar(){
-  var r = rota(), nome = r.nome, publica = ["convite", "jogos", "premium"].indexOf(nome) >= 0;
+  var r = rota(), nome = r.nome, publica = ["convite", "jogos", "premium", "privacidade"].indexOf(nome) >= 0;
   if (S.estado !== "pronto") nome = S.estado;
   else if (!publica){
     if (!S.authPronto || S.verificandoAdmin) nome = "carregando";
@@ -502,20 +554,31 @@ function montar(){
   window.scrollTo(0, 0);
 }
 function atualizar(){ if (V && V.update) V.update(); avisos(); }
+var ICO = {
+  busca: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>',
+  mais: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  agenda: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17M9 15l2 2 4-4"/>',
+  pessoa: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/>',
+  pessoas: '<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c1-3.3 3.4-5 6.5-5s5.5 1.7 6.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18.5 15.3c1.5.8 2.5 2.300 3 4.700"/>',
+  entrar: '<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M4 12h11m0 0-3.500-3.500M15 12l-3.500 3.500"/>',
+  olho: '<path d="M2.5 12S6 5.5 12 5.5 21.500 12 21.500 12 18 18.500 12 18.500 2.500 12 2.500 12Z"/><circle cx="12" cy="12" r="2.800"/>'
+};
+function ico(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO[n] + "</svg>"; }
 function nav(){
   var el = $("#nav");
   if (S.estado !== "pronto" || V.nome === "convite"){ el.innerHTML = ""; return; }
-  function link(href, txt, ativo){ return '<a href="' + href + '"' + (ativo ? ' aria-current="page"' : "") + ">" + txt + "</a>"; }
+  function link(href, txt, ativo, i){ return '<a href="' + href + '"' + (ativo ? ' aria-current="page"' : "") + ">" + ico(i) + "<span>" + txt + "</span></a>"; }
   if (!S.usuario){
-    el.innerHTML = link("#jogos", "Jogos abertos", V.nome === "jogos") + link("#painel", "Entrar", V.nome === "inicio");
+    el.innerHTML = link("#jogos", "Jogos abertos", V.nome === "jogos", "busca") + link("#painel", "Entrar", V.nome === "inicio", "entrar");
     return;
   }
   if (!S.admin){
-    el.innerHTML = link("#jogos", "Abertos", V.nome === "jogos") + link("#painel", "Meus jogos", V.nome === "meus" || V.nome === "jogo" || V.nome === "novo") + link("#perfil", "Perfil", V.nome === "perfil" || V.nome === "premium");
+    el.innerHTML = link("#jogos", "Abertos", V.nome === "jogos", "busca") + link("#novo", "Marcar", V.nome === "novo", "mais") +
+      link("#painel", "Meus jogos", V.nome === "meus" || V.nome === "jogo", "agenda") + link("#perfil", "Perfil", V.nome === "perfil" || V.nome === "premium" || V.nome === "privacidade", "pessoa");
     return;
   }
-  el.innerHTML = link("#painel", "Jogos", ["painel", "novo", "jogo"].indexOf(V.nome) >= 0) + link("#jogadores", "Jogadores", V.nome === "jogadores") +
-    '<button type="button" data-acao="palco" aria-pressed="' + (S.palco ? "true" : "false") + '">' + (S.palco ? "Mostrar nomes" : "Ocultar nomes") + "</button>";
+  el.innerHTML = link("#painel", "Jogos", ["painel", "novo", "jogo"].indexOf(V.nome) >= 0, "agenda") + link("#jogadores", "Jogadores", V.nome === "jogadores", "pessoas") +
+    '<button type="button" data-acao="palco" aria-pressed="' + (S.palco ? "true" : "false") + '">' + ico("olho") + "<span>" + (S.palco ? "Mostrar nomes" : "Ocultar nomes") + "</span></button>";
 }
 
 /* ---------- Telas ---------- */
@@ -526,7 +589,10 @@ VIEWS.semConfig = function(){
   app.innerHTML = '<div class="card stack"><h1>Falta ligar o banco</h1><p>Preencha o arquivo <b>config.js</b> com a configuração do Firebase. O passo a passo está no README do repositório.</p></div>';
 };
 VIEWS.semBanco = function(){
-  app.innerHTML = '<div class="card stack"><h1>Sem conexão com o banco</h1><p>Não consegui carregar o Firebase. Confira a internet e recarregue a página.</p></div>';
+  app.innerHTML = navigator.onLine === false
+    ? '<div class="card stack"><h1>Você está sem internet</h1><p>O Fechou abre de novo sozinho quando a conexão voltar.</p></div>'
+    : '<div class="card stack"><h1>Não deu para conectar</h1><p>Não consegui carregar os dados. Confira a internet e tente de novo.</p>' +
+      '<button class="btn primary" type="button" data-acao="recarregar">Tentar de novo</button></div>';
 };
 function msgLogin(e){
   var c = String((e && e.code) || "");
@@ -547,13 +613,16 @@ function ligarLoginGoogle(btnId, erroId){
 }
 VIEWS.inicio = function(v){
   app.innerHTML = '<div class="card stack"><h1>Falta gente pro seu jogo?</h1>' +
-    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você entra em um toque, e a quadra vazia vira jogo.</p>" +
-    '<button class="btn primary block big" type="button" id="fl-google">Bora jogar</button>' +
-    '<div id="fl-erro" class="banner" hidden></div>' +
-    '<p class="note">Entra com sua conta Google. Recebeu um convite? Abra o link do WhatsApp: para entrar no jogo não precisa de conta.</p></div>' +
+    "<p>Marque o jogo, diga quantos faltam e mande o link. Quem combina com você entra em um toque, na quadra pública ou na arena.</p>" +
+    '<button class="btn primary block big" type="button" id="fl-google">Marcar um jogo</button>' +
+    '<a class="btn ghost block" href="#jogos">Achar um jogo para entrar</a>' +
+    '<div id="fl-erro" class="banner" role="alert" hidden></div>' +
+    '<p class="note">Marcar pede sua conta Google. Para maiores de 18 anos. <a href="#privacidade">Privacidade e segurança</a></p></div>' +
+    '<section><h2>O que você quer jogar?</h2><div class="chips">' +
+      ESPORTES.map(function(e){ return '<button type="button" data-acao="filtrar-esporte" data-esporte="' + esc(e) + '">' + esc(e === "Futebol society ou futsal" ? "Futebol" : e) + "</button>"; }).join("") + "</div></section>" +
     '<section id="in-jogos" hidden><div class="sec-head"><h2>Tem vaga agora</h2><a href="#jogos">Ver todos</a></div><div class="list" id="in-lista"></div></section>' +
     '<section class="card stack"><h2>Como funciona</h2><ol class="passos">' +
-      "<li><b>Marque:</b> esporte, nível, dia e arena. Leva 1 minuto.</li>" +
+      "<li><b>Marque:</b> esporte, nível, dia e lugar. Leva 1 minuto.</li>" +
       "<li><b>Mande o link</b> nos seus grupos ou deixe público no app.</li>" +
       "<li><b>Fechou:</b> quem combina entra, e você não joga sozinho.</li></ol></section>" +
     '<p class="prova">Ouvimos 20 jogadores da região: <b>15 tiveram jogo que não aconteceu por falta de gente</b> no último mês, e 11 dizem que não conhecem gente ou lugares para jogar. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
@@ -566,6 +635,25 @@ VIEWS.inicio = function(v){
     $("#in-lista").innerHTML = abertos.map(cardPublico).join("");
   };
 };
+VIEWS.privacidade = function(){
+  app.innerHTML = '<a class="back" href="#painel">← Voltar</a><h1>Privacidade e segurança</h1>' +
+    '<section class="card stack"><h2>O que o Fechou guarda</h2><ul class="beneficios">' +
+      "<li><b>Conta:</b> o login é do Google. Guardamos seu identificador e, se você preencher, o perfil: nome, cidade, esportes, nível, horários e WhatsApp.</li>" +
+      "<li><b>Jogos:</b> esporte, nível, dia, lugar, cidade e o primeiro nome de quem organiza.</li>" +
+      "<li><b>Presença:</b> o nome que você escreveu ao entrar num jogo.</li>" +
+      "<li><b>Localização:</b> o app não usa GPS. Você escolhe a cidade.</li></ul></section>" +
+    '<section class="card stack"><h2>Quem vê o quê</h2><ul class="beneficios">' +
+      "<li>Qualquer pessoa com o link vê o jogo e o primeiro nome de quem confirmou.</li>" +
+      "<li>O WhatsApp de quem organiza só aparece para quem entrou no jogo com conta, e para a equipe do Fechou.</li>" +
+      "<li>Seu perfil e seu WhatsApp só são vistos por você e pela equipe do Fechou, para chamar você para jogos, se você marcou essa opção.</li></ul></section>" +
+    '<section class="card stack"><h2>Seus direitos</h2><p>Você pode corrigir ou apagar o perfil em <a href="#perfil">Perfil</a>, sair de um jogo e apagar os jogos que marcou. Para tirar seu nome de um jogo em que entrou sem conta, avise quem organizou.</p></section>' +
+    '<section class="card stack"><h2>Jogar com quem você não conhece</h2><ul class="beneficios">' +
+      "<li>O Fechou é para maiores de 18 anos.</li>" +
+      "<li>Prefira jogos em arenas ou lugares públicos e movimentados, e avise alguém para onde vai.</li>" +
+      "<li>Jogo público pede conta: quem organiza sabe quem entrou.</li>" +
+      "<li>Não passe endereço de casa nem dados de pagamento. O Fechou não cobra nada nem reserva quadra: o horário da arena é combinado direto com ela.</li>" +
+      "<li>Viu algo errado num jogo? Avise quem organizou e a equipe do Fechou.</li></ul></section>";
+};
 VIEWS.meus = function(v){
   var u = S.usuario || {};
   app.innerHTML =
@@ -577,7 +665,7 @@ VIEWS.meus = function(v){
     '<details class="card" id="m-time"><summary>É da equipe de uma arena? Entre com o código do time</summary>' +
       '<form id="f-codigo" class="form" novalidate>' +
         '<label class="fld">Código do time<input id="fc-codigo" class="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>' +
-        '<div id="fc-erro" class="banner" hidden></div>' +
+        '<div id="fc-erro" class="banner" role="alert" hidden></div>' +
         '<button class="btn primary block" type="submit" id="fc-entrar">Entrar no time</button>' +
       "</form></details>" +
     '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
@@ -625,10 +713,10 @@ VIEWS.perfil = function(){
       '<label class="fld">WhatsApp (opcional)<input id="fp-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(p.whatsapp || "") + '"></label>' +
       '<label class="check"><input id="fp-aceita" type="checkbox"' + (p.aceitaConvites === false ? "" : " checked") + '><span>Quero ser chamado para jogos que combinam comigo</span><small>Só a equipe do Fechou vê seu número.</small></label>' +
       '<div class="plano"><span class="chip">Plano Free</span><a href="#premium">Conhecer o Premium</a></div>' +
-      '<div id="fp-erro" class="banner" hidden></div>' +
+      '<div id="fp-erro" class="banner" role="alert" hidden></div>' +
       '<button class="btn primary block big" type="submit" id="fp-salvar">' + (novo ? "Salvar e continuar" : "Salvar perfil") + "</button>" +
     "</form>" +
-    '<p class="note">Usamos esses dados só para montar jogos. Só a equipe do Fechou vê seu WhatsApp, e você pode apagar o perfil quando quiser.</p>' +
+    '<p class="note">Usamos esses dados só para montar jogos. Só a equipe do Fechou vê seu WhatsApp, e você pode apagar o perfil quando quiser. <a href="#privacidade">Privacidade e segurança</a></p>' +
     (novo && !S.admin ? '<p><button type="button" class="link" data-acao="pular-perfil">Preencher depois</button></p>'
       : '<p class="note">Conectado como ' + esc(u.email || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button>' +
         (S.perfil ? ' · <button type="button" class="link" data-acao="apagar-perfil">Apagar meu perfil</button>' : "") + "</p>");
@@ -677,7 +765,7 @@ function cardPublico(g){
   var e = estadoJogo(g);
   return '<a class="game" href="#convite-' + esc(g.id) + '">' +
     '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span></div>" +
-    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + "</div>" +
+    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + (g.tipoLocal === "publica" ? " · quadra pública" : "") + "</div>" +
     '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.donoNome ? " · por " + esc(g.donoNome) : "") + "</div></div>" +
     '<div class="g-count">' + (e.fechado ? '<span class="chip ok">Fechou</span>' : '<span class="chip warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + "</span>") + "</div></a>";
 }
@@ -688,19 +776,20 @@ VIEWS.jogos = function(v){
   if (f.cidade == null) f.cidade = (S.perfil && S.perfil.cidadeChave) || "";
   app.innerHTML = "<h1>Jogos abertos</h1>" +
     '<p class="note">Jogos públicos marcados no app. Toque em um para ver os detalhes e fazer check-in.</p>' +
-    '<form id="f-filtros" class="card filtros" novalidate>' +
+    '<details class="card" id="jg-filtros"><summary id="jg-resumo">Filtros</summary><form id="f-filtros" class="filtros" novalidate>' +
       '<label class="fld">Quando<select id="ff-data"><option value="7d">Próx. 7 dias</option><option value="hoje">Hoje</option><option value="amanha">Amanhã</option><option value="fds">Este fim de semana</option><option value="todas">Qualquer data</option></select></label>' +
       '<label class="fld">Cidade<select id="ff-cidade"></select></label>' +
       '<label class="fld">Esporte<select id="ff-esporte"><option value="">Todos</option>' + ESPORTES.map(function(e){ return '<option value="' + esc(e) + '">' + esc(e) + "</option>"; }).join("") + "</select></label>" +
       '<label class="fld">Nível<select id="ff-nivel"><option value="">Qualquer</option>' + [1, 2, 3, 4, 5].map(function(n){ return '<option value="' + n + '">' + n + " · " + NIVEIS[n] + "</option>"; }).join("") + "</select></label>" +
+      '<label class="fld">Local<select id="ff-tipo"><option value="">Todos</option><option value="privada">Arena</option><option value="publica">Quadra pública</option></select></label>' +
       '<label class="check"><input id="ff-vaga" type="checkbox"><span>Só jogos com vaga</span></label>' +
-    "</form>" +
+    "</form></details>" +
     '<div class="sec-head"><h2>Resultados</h2><span class="muted" id="jg-qtd"></span></div>' +
     '<div class="list" id="jg-res"></div>' +
     '<a class="btn ghost block" href="#novo">Marcar meu jogo</a>';
-  $("#ff-data").value = f.data; $("#ff-esporte").value = f.esporte || ""; $("#ff-nivel").value = f.nivel || ""; $("#ff-vaga").checked = !!f.soVaga;
+  $("#ff-data").value = f.data; $("#ff-esporte").value = f.esporte || ""; $("#ff-nivel").value = f.nivel || ""; $("#ff-tipo").value = f.tipo || ""; $("#ff-vaga").checked = !!f.soVaga;
   $("#f-filtros").addEventListener("change", function(){
-    f = { data: $("#ff-data").value, cidade: $("#ff-cidade").value, esporte: $("#ff-esporte").value, nivel: $("#ff-nivel").value, soVaga: $("#ff-vaga").checked };
+    f = { data: $("#ff-data").value, cidade: $("#ff-cidade").value, esporte: $("#ff-esporte").value, nivel: $("#ff-nivel").value, tipo: $("#ff-tipo").value, soVaga: $("#ff-vaga").checked };
     lsSet("filtros", JSON.stringify(f)); v.update();
   });
   v.update = function(){
@@ -717,8 +806,15 @@ VIEWS.jogos = function(v){
       if (f.cidade && (g.cidadeChave || chave(g.cidade)) !== f.cidade) return false;
       if (f.esporte && g.esporte !== f.esporte) return false;
       if (f.nivel && Math.abs(Number(g.nivel) - Number(f.nivel)) > 1) return false;
+      if (f.tipo && (g.tipoLocal === "publica" ? "publica" : "privada") !== f.tipo) return false;
       return true;
     }).sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
+    var partes = [$("#ff-data").options[$("#ff-data").selectedIndex].textContent, f.cidade ? (cidades[f.cidade] || f.cidade) : "todas as cidades"];
+    if (f.esporte) partes.push(f.esporte);
+    if (f.nivel) partes.push("nível " + f.nivel + " (até 1 de diferença)");
+    if (f.tipo) partes.push(f.tipo === "publica" ? "quadra pública" : "arena");
+    if (f.soVaga) partes.push("com vaga");
+    setText("jg-resumo", "Filtros: " + partes.join(" · "));
     setText("jg-qtd", lista.length + plural(lista.length, " jogo", " jogos"));
     $("#jg-res").innerHTML = lista.length ? lista.map(cardPublico).join("")
       : '<div class="empty">' + (S.carregado.jogos ? "Nenhum jogo aberto com esses filtros. Que tal marcar o seu?" : "Carregando jogos…") + "</div>";
@@ -737,7 +833,7 @@ VIEWS.premium = function(v){
     if (el.getAttribute("data-modo") === modo) return;
     el.setAttribute("data-modo", modo);
     if (modo === "entrar"){
-      el.innerHTML = '<button class="btn primary block big" type="button" id="pr-google">Entrar com Google para entrar na lista</button><div id="pr-erro" class="banner" hidden></div>';
+      el.innerHTML = '<button class="btn primary block big" type="button" id="pr-google">Entrar com Google para entrar na lista</button><div id="pr-erro" class="banner" role="alert" hidden></div>';
       ligarLoginGoogle("pr-google", "pr-erro");
     } else if (modo === "dentro"){
       el.innerHTML = '<div class="status ok">Você está na lista do Premium</div><p class="note">Avisamos quando abrir. Ninguém é cobrado agora.</p>';
@@ -754,7 +850,7 @@ function cardJogo(g){
   return '<a class="game" href="#jogo-' + esc(g.id) + '">' +
     '<div><div class="g-title">' + esc(g.esporte) + ' <span class="chip">' + esc(NIVEIS[g.nivel] || "") + "</span>" +
       (g.visibilidade === "publico" ? ' <span class="chip">público</span>' : ' <span class="chip">privado</span>') + (g.teste ? ' <span class="chip test">teste</span>' : "") + "</div>" +
-    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + "</div>" +
+    '<div class="g-sub">' + esc(quandoCurto(g.quando)) + " · " + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + (g.tipoLocal === "publica" ? " · quadra pública" : "") + "</div>" +
     '<div class="g-sub">' + esc(rotuloSituacao(g)) + (g.origem === "jogador" && g.donoNome ? " · por " + esc(g.donoNome) : "") + (Number(g.valor) > 0 ? " · quadra " + esc(brl(g.valor)) : "") + "</div></div>" +
     '<div class="g-count"><span class="num">' + e.preench + "/" + e.vagas + "</span>" + pill + "</div>" +
     '<div class="bar' + (e.fechado ? " full" : "") + '"><span data-w="' + pct + '"></span></div></a>';
@@ -762,7 +858,7 @@ function cardJogo(g){
 VIEWS.painel = function(v){
   app.innerHTML =
     '<section class="tiles" aria-label="Resultados dos jogos reais">' +
-      '<div class="tile big"><span class="lbl">Reservas geradas</span><span class="num" id="t-reais">—</span><span class="sub" id="t-reais-sub"></span></div>' +
+      '<div class="tile big"><span class="lbl">Receita de quadra gerada para arenas</span><span class="num" id="t-reais">—</span><span class="sub" id="t-reais-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogos que fecharam</span><span class="num" id="t-fech">—</span><span class="sub" id="t-fech-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Vagas preenchidas</span><span class="num" id="t-vagas">—</span><span class="sub" id="t-vagas-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogadores na base</span><span class="num" id="t-base">—</span><span class="sub" id="t-base-sub"></span></div>' +
@@ -778,7 +874,7 @@ VIEWS.painel = function(v){
   v.update = function(){
     var m = metricas();
     setText("t-reais", brl(m.reais));
-    setText("t-reais-sub", m.fechados ? (m.semPreco ? m.semPreco + plural(m.semPreco, " jogo fechado está", " jogos fechados estão") + " sem preço informado" : "em jogos que não iam acontecer") : "Ainda nenhum jogo real fechou.");
+    setText("t-reais-sub", m.fechados ? (m.semPreco ? m.semPreco + plural(m.semPreco, " jogo fechado está", " jogos fechados estão") + " sem preço informado" : "preço da quadra nos jogos que fecharam em arena") : "Ainda nenhum jogo real fechou.");
     setText("t-fech", m.fechados);
     setText("t-fech-sub", m.fechados ? m.vagos + " em horário vago, " + m.salvos + plural(m.salvos, " salvo", " salvos") + " de cancelar" : "");
     setText("t-vagas", m.preench + "/" + m.vagasTot);
@@ -824,7 +920,11 @@ VIEWS.novo = function(v){
         [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="nivel" value="' + n + '"' + (n === (Number(pf.nivel) || 3) ? " checked" : "") + ' aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") +
       '</div><p class="nivel-txt" id="f-nivel-txt">' + esc((Number(pf.nivel) || 3) + " · " + NIVEL_DESC[Number(pf.nivel) || 3]) + "</p></fieldset>" +
       '<label class="fld">Dia e hora<input id="f-quando" type="datetime-local" step="1800" value="' + proximaHora() + '"></label>' +
-      '<label class="fld">Onde (arena)<input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
+      '<fieldset class="seg"><legend>Onde vai ser</legend>' +
+        '<label><input type="radio" name="tipo" value="privada" checked><span>Arena<small>Quadra alugada. Quem organiza combina o horário com a arena.</small></span></label>' +
+        '<label><input type="radio" name="tipo" value="publica"><span>Quadra pública<small>Praça, praia ou ginásio aberto. Grátis e sem reserva.</small></span></label>' +
+      "</fieldset>" +
+      '<label class="fld"><span id="f-arena-lbl">Nome da arena</span><input id="f-arena" list="dl-arenas" autocomplete="off" placeholder="Nome da arena" value="' + esc(lsGet("arena") || "") + '"></label>' +
       '<datalist id="dl-arenas">' + arenas.map(function(a){ return '<option value="' + esc(a) + '">'; }).join("") + "</datalist>" +
       '<label class="fld">Cidade<input id="f-cidade" list="dl-cidades" autocomplete="off" placeholder="Cidade do jogo" value="' + esc(lsGet("cidade") || pf.cidade || "") + '"></label>' +
       '<datalist id="dl-cidades">' + CIDADES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
@@ -833,16 +933,26 @@ VIEWS.novo = function(v){
         '<label class="fld">' + (equipe ? "Já são quantos?" : "Já são quantos, contando você?") + '<input id="f-ja" type="number" inputmode="numeric" min="0" max="29" value="' + (equipe ? 0 : 1) + '"></label>' +
       "</div>" +
       '<p class="nivel-txt" id="f-faltam" aria-live="polite"></p>' +
-      '<label class="fld">Preço da quadra (R$)' + (equipe ? "" : ", se souber") + '<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
-      '<label class="fld">Seu WhatsApp, para quem confirmar falar com você<input id="f-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(lsGet("zap") || pf.whatsapp || "") + '"></label>' +
-      '<p class="note">Quem tiver o link do jogo vê esse número. Deixe em branco se preferir combinar pelo grupo.</p>' +
+      '<label class="fld" id="f-valor-box">Preço da quadra (R$)' + (equipe ? "" : ", se souber") + '<input id="f-valor" inputmode="decimal" autocomplete="off" placeholder="O valor que a arena cobra"></label>' +
+      '<label class="fld">Seu WhatsApp (opcional)<input id="f-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999" value="' + esc(lsGet("zap") || pf.whatsapp || "") + '"></label>' +
+      '<p class="note">Só quem entrar no jogo com conta vê seu número. Deixe em branco se preferir combinar pelo grupo.</p>' +
+      '<p id="f-parecido" class="prova" hidden></p>' +
       (equipe ? '<label class="check"><input id="f-teste" type="checkbox"><span>Jogo de teste</span><small>Fica fora dos números do painel. Use na demonstração.</small></label>' : "") +
-      '<div id="f-erro" class="banner" hidden></div>' +
+      '<div id="f-erro" class="banner" role="alert" hidden></div>' +
       '<button class="btn primary block big" type="submit" id="f-enviar">Marcar e pegar o link</button>' +
     "</form>";
 
   var f = $("#f-novo"), esp = $("#f-esporte"), tot = $("#f-total"), ja = $("#f-ja");
   if (pf.esportes && pf.esportes.length && ESPORTES.indexOf(pf.esportes[0]) >= 0){ esp.value = pf.esportes[0]; tot.value = TOTAL_PADRAO[esp.value] || 4; }
+  function tipoLocal(){ return (f.querySelector('input[name="tipo"]:checked') || {}).value === "publica" ? "publica" : "privada"; }
+  function ajustarTipo(){
+    var pub = tipoLocal() === "publica", inp = $("#f-arena");
+    setText("f-arena-lbl", pub ? "Local (praça, praia, quadra)" : "Nome da arena");
+    inp.placeholder = pub ? "Ex.: quadra da praça central" : "Nome da arena";
+    if (pub) inp.removeAttribute("list"); else inp.setAttribute("list", "dl-arenas");
+    $("#f-valor-box").hidden = pub;
+  }
+  f.addEventListener("change", function(ev){ if (ev.target.name === "tipo") ajustarTipo(); });
   function faltam(){ return (parseInt(tot.value, 10) || 0) - (parseInt(ja.value, 10) || 0); }
   function mostrarFaltam(){
     var n = faltam();
@@ -869,25 +979,42 @@ VIEWS.novo = function(v){
     var total = parseInt(tot.value, 10), jaN = parseInt(ja.value, 10);
     if (!(total >= 2 && total <= 30)) return falha("Jogadores no total: de 2 a 30.");
     if (!(jaN >= 0 && jaN < total)) return falha("Já são quantos: precisa sobrar pelo menos 1 vaga.");
-    var valor = lerValor($("#f-valor").value);
+    var tipo = tipoLocal(), valor = tipo === "publica" ? null : lerValor($("#f-valor").value);
     if (valor === undefined) return falha("Preço: use só números, como 90 ou 90,50.");
     var zapRaw = $("#f-zap").value.trim(), zap = zapRaw ? normalizarZap(zapRaw) : "";
     if (zapRaw && !zap) return falha("WhatsApp: DDD e número, como (48) 9 9999-9999.");
     var nivelEl = f.querySelector('input[name="nivel"]:checked');
+    var parecido = v.avisouParecido ? null : S.jogos.filter(function(o){
+      var od = parseQuando(o.quando);
+      return o.esporte === esp.value && chave(o.arena) === chave(arena) && od && Math.abs(od - dt) <= 60 * 60e3 && !jaPassou(o) &&
+        !estadoJogo(o).fechado && o.donoUid !== u.uid && !o.teste && (o.visibilidade === "publico" || equipe);
+    })[0];
+    if (parecido){
+      v.avisouParecido = true;
+      var av = $("#f-parecido"), nf = estadoJogo(parecido).faltam;
+      av.innerHTML = "Já tem um jogo de " + esc(esporteMsg(parecido.esporte)) + " nesse lugar " + esc(quandoTexto(parecido.quando)) + ", com " + plural(nf, "1 vaga", nf + " vagas") +
+        '. <a href="#convite-' + esc(parecido.id) + '">Entrar nele</a> junta todo mundo num jogo só. Se preferir o seu, toque de novo em marcar.';
+      av.hidden = false; av.scrollIntoView({ block: "center" });
+      $("#f-enviar").textContent = "Marcar mesmo assim";
+      return;
+    }
     var dados = {
       arena: arena.slice(0, 80), esporte: esp.value, nivel: Number(nivelEl ? nivelEl.value : 3), quando: quando,
       total: total, vagas: total - jaN, valor: valor, situacao: jaN >= 2 ? "cancelar" : "vago",
       teste: equipe ? $("#f-teste").checked : false, criadoEm: Date.now(),
       donoUid: u.uid, donoNome: (primeiroNome(u.nome) || String(u.email || "").split("@")[0]).slice(0, 60),
-      donoZap: zap, origem: equipe ? "equipe" : "jogador",
+      donoZap: "", origem: equipe ? "equipe" : "jogador", tipoLocal: tipo,
       visibilidade: (f.querySelector('input[name="visib"]:checked') || {}).value === "privado" ? "privado" : "publico",
       cidade: cidade.slice(0, 60), cidadeChave: chave(cidade).slice(0, 60)
     };
     var id = novoId(), btn = $("#f-enviar");
     btn.disabled = true; erroEl.hidden = true;
     gravar(function(){ return S.db.doc("jogos/" + id).set(dados); }).then(function(r){
-      if (r.ok){ lsSet("arena", arena); lsSet("cidade", cidade); if (zap) lsSet("zap", zapRaw); location.hash = "jogo-" + id; }
-      else btn.disabled = false;
+      if (!r.ok){ btn.disabled = false; return; }
+      if (tipo !== "publica") lsSet("arena", arena);
+      lsSet("cidade", cidade); if (zap) lsSet("zap", zapRaw);
+      var fim = function(){ location.hash = "jogo-" + id; };
+      if (zap) gravar(function(){ return S.db.doc("jogos/" + id + "/contato/dono").set({ zap: zap }); }, true).then(fim); else fim();
     });
   });
 };
@@ -941,11 +1068,11 @@ function rowMatch(g, x, ctx){
 function pintarJogo(v, g){
   var e = estadoJogo(g);
   $("#j-head-main").innerHTML =
-    '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.visibilidade === "publico" ? '<span class="chip">público no app</span>' : '<span class="chip">privado</span>') + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
+    '<div class="g-title"><span class="kicker">' + esc(rotuloSituacao(g)) + "</span>" + (g.visibilidade === "publico" ? '<span class="chip">público no app</span>' : '<span class="chip">privado</span>') + '<span class="chip">' + (g.tipoLocal === "publica" ? "quadra pública" : "arena") + "</span>" + (g.teste ? '<span class="chip test">teste</span>' : "") + "</div>" +
     "<h1>" + esc(g.esporte) + "</h1>" +
     '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div><div>" + esc(NIVEIS[g.nivel] || "") + " · " + esc(g.total) + " jogadores</div>" +
     (v.equipe && g.origem === "jogador" && g.donoNome
-      ? "<div>Marcado por " + esc(g.donoNome) + (g.donoZap ? ' · <a href="' + esc(waLink(g.donoZap, "Oi, " + g.donoNome + "! Aqui é da equipe do Fechou, sobre o seu jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + ".")) + '" target="_blank" rel="noopener">falar no WhatsApp</a>' : "") + "</div>"
+      ? "<div>Marcado por " + esc(g.donoNome) + ((g.donoZap || v.contato) ? ' · <a href="' + esc(waLink(g.donoZap || v.contato, "Oi, " + g.donoNome + "! Aqui é da equipe do Fechou, sobre o seu jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + ".")) + '" target="_blank" rel="noopener">falar no WhatsApp</a>' : "") + "</div>"
       : "") + "</div>";
   if (!v.editandoPreco) $("#j-preco").innerHTML = linhaPreco(g, v.equipe);
 
@@ -954,8 +1081,10 @@ function pintarJogo(v, g){
   sc.innerHTML = '<div class="score">' + e.preench + "<small>/" + e.vagas + '</small></div><div class="score-lbl">vagas preenchidas</div>' +
     '<div class="bar' + (e.fechado ? " full" : "") + '"><span></span></div>' +
     (e.fechado
-      ? '<div class="status ok">Fechou! Reserva gerada' + (Number(g.valor) > 0 ? ": " + esc(brl(g.valor)) : "") + "</div>"
-      : '<div class="status warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + '</div><div class="muted">Quando fechar, vira uma reserva' + (Number(g.valor) > 0 ? " de " + esc(brl(g.valor)) : "") + " que não ia acontecer.</div>") +
+      ? '<div class="status ok">Fechou!' + (v.equipe && g.tipoLocal !== "publica" && Number(g.valor) > 0 ? " " + esc(brl(g.valor)) + " de quadra para a arena" : " Time completo.") + "</div>" +
+        '<div class="muted">' + (g.tipoLocal === "publica" ? "Quadra pública não tem reserva: cheguem cedo." : "O Fechou não reserva a quadra: confirme o horário com a arena.") + "</div>"
+      : '<div class="status warn">' + plural(e.faltam, "Falta 1", "Faltam " + e.faltam) + '</div><div class="muted">' +
+        (v.equipe && g.tipoLocal !== "publica" && Number(g.valor) > 0 ? "Quando fechar, são " + esc(brl(g.valor)) + " de quadra que não iam acontecer." : "Mande o link para fechar mais rápido.") + "</div>") +
     (e.n > e.vagas ? '<div class="muted">' + (e.n - e.vagas) + " na espera</div>" : "");
   barra($("span", sc), v.pctAntes == null ? pct : v.pctAntes, pct);
   if (v.fechadoAntes === false && e.fechado){ festa(); sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
@@ -976,7 +1105,7 @@ function pintarJogo(v, g){
   $("#j-confs").innerHTML = confs.length ? confs.map(function(c, i){
     var nome = nomeConf(c), espera = i >= e.vagas;
     return '<div class="prow' + (espera ? "" : " in") + '"><div class="avatar" aria-hidden="true">' + esc(iniciais(nome)) + "</div>" +
-      '<div><div class="pname">' + esc(nome) + (espera ? ' <span class="chip">na espera</span>' : "") + '</div><div class="psub">' + (c.via === "link" ? "Confirmou pelo link" : "Confirmou no WhatsApp") + " · " + esc(hhmm(c.criadoEm)) + "</div></div>" +
+      '<div><div class="pname">' + esc(nome) + (espera ? ' <span class="chip">na espera</span>' : "") + '</div><div class="psub">' + (c.via === "link" ? (c.uid ? "Entrou pelo app, com conta" : "Entrou pelo link, só com o nome") : "Confirmou no WhatsApp") + " · " + esc(hhmm(c.criadoEm)) + "</div></div>" +
       '<div class="pact"><button class="btn ghost sm" type="button" data-acao="tirar" data-conf="' + esc(c.id) + '">Tirar</button></div></div>';
   }).join("") : '<div class="empty">Ninguém confirmou ainda.</div>';
 
@@ -997,6 +1126,10 @@ VIEWS.jogo = function(v){
     var dono = !!S.usuario && g.donoUid === S.usuario.uid;
     if (!S.admin && !dono){ location.replace("#convite-" + g.id); return; }
     v.equipe = S.admin;
+    if (v.equipe && g.origem === "jogador" && !g.donoZap && v.contato === undefined){
+      v.contato = "";
+      S.db.doc("jogos/" + g.id + "/contato/dono").get().then(function(s){ if (s.exists && s.data().zap){ v.contato = s.data().zap; if (V === v) v.update(); } }, function(){});
+    }
     if (!v.montado){
       corpo.innerHTML = esqueletoJogo(v.equipe); v.montado = true;
       v.comLink = true; $("#j-comlink").checked = true;
@@ -1022,14 +1155,33 @@ function minhaConf(g){
   }
   return null;
 }
+function buscarContato(v, g){
+  if (v.contato !== undefined || !S.usuario) return;
+  v.contato = "";
+  v.tentContato = (v.tentContato || 0) + 1;
+  S.db.doc("jogos/" + g.id + "/contato/dono").get().then(function(s){
+    if (s.exists && s.data().zap){ v.contato = s.data().zap; v.modo = null; if (V === v) v.update(); }
+  }, function(){
+    if (v.tentContato < 3) setTimeout(function(){ v.contato = undefined; v.modo = null; if (V === v) v.update(); }, 1500);
+  });
+}
 function pintarAcao(v, g, modo){
   var el = $("#cv-acao");
+  var seguranca = '<p class="note">' + (S.usuario ? "" : "Sem cadastro: é só o seu nome. ") + 'Para maiores de 18 anos. <a href="#privacidade">Dicas de segurança</a></p>';
   if (modo === "form" || modo === "espera"){
     var espera = modo === "espera";
+    if (g.visibilidade === "publico" && !S.usuario){
+      el.innerHTML = '<div class="stack"><h2>' + (espera ? "Esse jogo fechou" : "Entre para jogar") + "</h2>" +
+        "<p>" + (espera ? "Dá para entrar na lista de espera. " : "") + "Jogo público pede conta: quem organiza sabe quem vem, e você vê o contato dele depois de entrar.</p>" +
+        '<button class="btn primary block big" type="button" id="cv-google">Entrar com Google</button>' +
+        '<div id="cv-erro" class="banner" role="alert" hidden></div>' +
+        '<p class="note">Para maiores de 18 anos. <a href="#privacidade">Dicas de segurança</a></p></div>';
+      ligarLoginGoogle("cv-google", "cv-erro");
+      return;
+    }
     el.innerHTML = (espera ? '<h2>Esse jogo fechou</h2><p>Entre na lista de espera: se alguém desistir, a vaga é sua, na ordem da lista.</p>' : "") +
       '<form id="f-conf" class="form"><label class="fld">Seu nome<input id="fc-nome" autocomplete="given-name" placeholder="Como te chamam" value="' + esc((S.perfil && S.perfil.nome) || lsGet("nome") || primeiroNome(S.usuario && S.usuario.nome) || "") + '"></label>' +
-      '<button class="btn primary block big" type="submit" id="fc-btn">' + (espera ? "Entrar na lista de espera" : "Tô dentro") + "</button>" +
-      '<p class="note">Sem cadastro: é só o seu nome.</p></form>';
+      '<button class="btn primary block big" type="submit" id="fc-btn">' + (espera ? "Entrar na lista de espera" : "Tô dentro") + "</button>" + seguranca + "</form>";
     $("#f-conf").addEventListener("submit", function(ev){
       ev.preventDefault();
       var nome = $("#fc-nome").value.trim();
@@ -1038,7 +1190,7 @@ function pintarAcao(v, g, modo){
       var dadosConf = { jogoId: g.id, nome: nome, via: "link", criadoEm: Date.now() };
       if (logado) dadosConf.uid = S.usuario.uid;
       gravar(function(){ return S.db.doc("confirmacoes/" + cid).set(dadosConf); }, true).then(function(r){
-        if (r.ok){ lsSet("conf:" + g.id, cid); lsSet("nome", nome); }
+        if (r.ok){ lsSet("conf:" + g.id, cid); lsSet("nome", nome); v.contato = undefined; }
         else if (codigo({ code: r.code }) === "permission-denied" || codigo({ code: r.code }) === "invalid-argument"){ v.semPermissao = true; }
         else { toast(msgErro({ code: r.code })); btn.disabled = false; }
         v.update();
@@ -1047,14 +1199,16 @@ function pintarAcao(v, g, modo){
   } else if (modo.indexOf("dentro") === 0){
     var quem = g.donoNome || "quem organizou", m = minhaConf(g), e = estadoJogo(g);
     var naEspera = !!m && m.pos >= e.vagas, meu = !!m && !!S.usuario && m.conf.uid === S.usuario.uid;
+    if (meu && !g.donoZap) buscarContato(v, g);
+    var zap = g.donoZap || (meu ? v.contato : "") || "";
     el.innerHTML = '<div class="stack">' +
       (naEspera
         ? '<div class="status warn">Você está na lista de espera</div><p>Posição ' + (m.pos - e.vagas + 1) + ". Se alguém desistir, você entra no jogo e esta tela avisa.</p>"
         : '<div class="status ok">Você está no jogo!</div>') +
-      (g.donoZap
+      (zap
         ? (naEspera ? "" : "<p>Combine os detalhes com " + esc(quem) + " pelo WhatsApp.</p>") +
-          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(g.donoZap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! " + (naEspera ? "Entrei na lista de espera do" : "Confirmei no") + " jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
-        : (naEspera ? "" : "<p>Combine os detalhes no grupo onde você recebeu o convite.</p>")) +
+          '<a class="btn zap block" target="_blank" rel="noopener" href="' + esc(waLink(zap, "Oi" + (g.donoNome ? ", " + g.donoNome : "") + "! " + (naEspera ? "Entrei na lista de espera do" : "Confirmei no") + " jogo de " + esporteMsg(g.esporte) + " " + quandoTexto(g.quando) + " na " + g.arena + " pelo Fechou. Sou " + (lsGet("nome") || "eu") + ".")) + '">Falar com ' + esc(quem) + " no WhatsApp</a>"
+        : (naEspera ? "" : "<p>Combine os detalhes " + (meu ? "com " + esc(quem) : "no grupo onde você recebeu o convite") + ".</p>")) +
       (meu
         ? '<button class="btn ghost block" type="button" data-acao="desistir" data-conf="' + esc(m.conf.id) + '" data-jogo="' + esc(g.id) + '">Não vou mais (libera a vaga)</button>'
         : '<p class="note">Não vai mais? Avise ' + esc(quem) + " o quanto antes, para a vaga ir para outra pessoa.</p>") +
@@ -1064,7 +1218,7 @@ function pintarAcao(v, g, modo){
     el.innerHTML = '<div class="stack"><h2>Esse jogo já passou</h2><p>Quer achar outro jogo do seu nível?</p>' +
       '<a class="btn primary block" href="#jogos">Ver jogos abertos</a></div>';
   } else {
-    el.innerHTML = '<div class="stack"><h2>Confirme pelo WhatsApp</h2><p>Por aqui não deu. Responda “tô dentro” na mensagem de quem te convidou.</p></div>';
+    el.innerHTML = '<div class="stack"><h2>Não deu para confirmar por aqui</h2><p>Responda “tô dentro” na mensagem de quem te convidou.</p></div>';
   }
 }
 VIEWS.convite = function(v){
@@ -1076,7 +1230,7 @@ VIEWS.convite = function(v){
         corpo.innerHTML = '<div class="empty">Não consegui carregar o convite. Confira a internet e recarregue.</div>';
         v.montado = false;
       } else if (S.confirmado.jogos){
-        corpo.innerHTML = '<div class="card stack"><h1>Convite não encontrado</h1><p>Esse jogo foi apagado ou o link veio incompleto. Peça um novo convite a quem te chamou.</p>' +
+        corpo.innerHTML = '<div class="card stack"><h1>Convite não encontrado</h1><p>Esse jogo foi cancelado ou o link veio incompleto. Peça um novo convite a quem te chamou.</p>' +
           '<a class="btn ghost" href="' + TALLY_URL + '" target="_blank" rel="noopener">Quero ser chamado para jogos</a></div>';
         v.montado = false;
       }
@@ -1089,10 +1243,11 @@ VIEWS.convite = function(v){
     }
     var e = estadoJogo(g), pp = porPessoa(g), pct = e.vagas ? Math.round(100 * e.preench / e.vagas) : 0;
     $("#cv-head").innerHTML = '<span class="kicker">' + (jaSao(g) >= 1 ? "Falta gente nesse jogo" : "Jogo com vaga") + "</span><h1>" + esc(g.esporte) + "</h1>" +
-      '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + "</div>" +
+      '<div class="meta"><div><b>' + esc(cap(quandoTexto(g.quando))) + "</b></div><div>" + esc(g.arena) + (g.cidade ? ", " + esc(g.cidade) : "") + ' <span class="chip">' + (g.tipoLocal === "publica" ? "quadra pública" : "arena") + "</span></div>" +
       (g.donoNome ? "<div>Quem organiza: " + esc(g.donoNome) + "</div>" : "") +
       "<div>Nível " + esc((NIVEIS[g.nivel] || "").toLowerCase()) + " · " + esc(g.total) + " jogadores</div>" +
-      (pp ? "<div>" + esc(brl(pp)) + ' por pessoa <span class="muted">(quadra ' + esc(brl(g.valor)) + " dividida por " + esc(g.total) + ")</span></div>" : "") + "</div>";
+      (pp ? "<div>" + esc(brl(pp)) + ' por pessoa <span class="muted">(quadra ' + esc(brl(g.valor)) + " dividida por " + esc(g.total) + ")</span></div>" : "") + "</div>" +
+      '<p class="note">' + (g.tipoLocal === "publica" ? "Quadra pública não tem reserva: cheguem cedo." : "O horário da quadra é combinado por quem organiza, direto com a arena.") + "</p>";
     var nomes = [], semNome = 0, sc = $("#cv-score");
     confsDo(g.id).forEach(function(c){
       var n = (S.palco && c.jogadorId) ? pseudo(c.jogadorId) : (c.nome || "");
@@ -1175,7 +1330,7 @@ VIEWS.jogadores = function(v){
         '<fieldset><legend>Esportes</legend><div class="chips-in">' + ESPORTES.map(function(e){ return '<label><input type="checkbox" name="esp" value="' + esc(e) + '"><span>' + esc(e) + "</span></label>"; }).join("") + "</div></fieldset>" +
         '<fieldset><legend>Nível</legend><div class="seg cinco">' + [1, 2, 3, 4, 5].map(function(n){ return '<label><input type="radio" name="niv" value="' + n + '" aria-label="' + n + " · " + NIVEIS[n] + '"><span>' + n + "</span></label>"; }).join("") + '</div><p class="nivel-txt" id="fj-nivel-txt">Escolha de 1 (iniciante) a 5 (competitivo).</p></fieldset>' +
         '<fieldset><legend>Quando pode jogar</legend><div class="chips-in">' + HORARIOS.map(function(h){ return '<label><input type="checkbox" name="hor" value="' + esc(h) + '"><span>' + esc(HORARIO_CURTO[h]) + "</span></label>"; }).join("") + "</div></fieldset>" +
-        '<div id="fj-erro" class="banner" hidden></div>' +
+        '<div id="fj-erro" class="banner" role="alert" hidden></div>' +
         '<button class="btn primary block" type="submit">Salvar jogador</button>' +
       "</form></details>";
   var f = $("#f-jog");
@@ -1238,6 +1393,22 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "filtrar-esporte"){
+    var ff = lerFiltros(); ff.esporte = t.getAttribute("data-esporte"); lsSet("filtros", JSON.stringify(ff));
+    location.hash = "jogos";
+  } else if (a === "recarregar"){
+    location.reload();
+  } else if (a === "instalar"){
+    if (!S.promptInstalar) return;
+    var pi = S.promptInstalar; S.promptInstalar = null;
+    pi.prompt();
+    if (pi.userChoice && pi.userChoice.then) pi.userChoice.then(function(){ avisos(); }, function(){ avisos(); }); else avisos();
+  } else if (a === "instalar-depois"){
+    lsSet("instalarDepois", "1"); avisos();
+  } else if (a === "atualizar-app"){
+    if (!S.swEspera) return;
+    t.disabled = true; S.recarregarAoTrocar = true;
+    S.swEspera.postMessage({ type: "SKIP_WAITING" });
   } else if (a === "desistir"){
     if (!armar(t, "Toque de novo para sair do jogo")) return;
     t.disabled = true;
@@ -1283,7 +1454,8 @@ document.addEventListener("click", function(ev){
     var cadeia = Promise.resolve();
     cs.forEach(function(c){ cadeia = cadeia.then(function(){ return gravar(function(){ return S.db.doc("confirmacoes/" + c.id).delete(); }, true); }); });
     cvs.forEach(function(c){ cadeia = cadeia.then(function(){ return gravar(function(){ return S.db.doc("convites/" + c.id).delete(); }, true); }); });
-    cadeia.then(function(){ return gravar(function(){ return S.db.doc("jogos/" + g.id).delete(); }); })
+    cadeia.then(function(){ return gravar(function(){ return S.db.doc("jogos/" + g.id + "/contato/dono").delete(); }, true); })
+      .then(function(){ return gravar(function(){ return S.db.doc("jogos/" + g.id).delete(); }); })
       .then(function(r){ if (r.ok){ toast("Jogo apagado"); location.hash = "painel"; } else t.disabled = false; });
   } else if (a === "preco"){
     g = jogoAtual(); if (!g) return;
@@ -1388,10 +1560,31 @@ function verificarAdmin(){
   });
 }
 
+function registrarSW(){
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("sw.js").then(function(reg){
+    function vigiar(sw){
+      if (!sw) return;
+      function checar(){ if (sw.state === "installed" && navigator.serviceWorker.controller){ S.swEspera = sw; avisos(); } }
+      checar(); sw.addEventListener("statechange", checar);
+    }
+    vigiar(reg.waiting); vigiar(reg.installing);
+    reg.addEventListener("updatefound", function(){ vigiar(reg.installing); });
+    document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") reg.update().catch(function(){}); });
+  }).catch(function(e){ if (window.console) console.warn("sw", e); });
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if (S.recarregarAoTrocar){ S.recarregarAoTrocar = false; location.reload(); }
+  });
+}
 function iniciar(){
   window.addEventListener("hashchange", montar);
+  window.addEventListener("beforeinstallprompt", function(ev){ ev.preventDefault(); S.promptInstalar = ev; avisos(); });
+  window.addEventListener("appinstalled", function(){ S.promptInstalar = null; avisos(); });
+  window.addEventListener("offline", function(){ if (S.estado === "semBanco") montar(); else avisos(); });
+  window.addEventListener("online", function(){ if (S.estado === "semBanco") location.reload(); else avisos(); });
+  registrarSW();
   montar();
-  var limite = setTimeout(function(){ if (S.estado === "carregando"){ S.estado = "semBanco"; montar(); } }, 15000);
+  var limite = setTimeout(function(){ if (S.estado === "carregando"){ S.estado = "semBanco"; montar(); } }, navigator.onLine === false ? 2500 : 15000);
   (window.backendPronto || Promise.resolve(null)).then(function(b){
     clearTimeout(limite);
     if (!b || b.erro){ S.estado = (b && b.erro === "config") ? "semConfig" : "semBanco"; montar(); return; }

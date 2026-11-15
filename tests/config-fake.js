@@ -1,0 +1,1 @@
+window.FIREBASE_CONFIG = {apiKey:"AIzaSyFakeKeyOnlyForLocalTest000000000",authDomain:"demo-teste.firebaseapp.com",projectId:"demo-teste",storageBucket:"demo-teste.appspot.com",messagingSenderId:"1",appId:"1:1:web:1"};

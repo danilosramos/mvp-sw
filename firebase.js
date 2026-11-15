@@ -32,6 +32,7 @@ if (!cfg.apiKey || cfg.apiKey === "COLE_AQUI" || !cfg.projectId) {
           set(dados) { return setDoc(ref, dados); },
           update(dados) { return updateDoc(ref, dados); },
           delete() { return deleteDoc(ref); },
+          get() { return getDoc(ref).then((d) => ({ exists: d.exists(), data: () => d.data() })); },
           onSnapshot(next, erro) {
             return onSnapshot(ref, (s) => next({ exists: s.exists(), data: () => s.data() }), erro);
           }
