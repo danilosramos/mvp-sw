@@ -4,6 +4,22 @@ Pesquisa feita em 15/11/2026. Tudo que é número de terceiros tem fonte no fim.
 
 **Lacuna da pesquisa:** o site qdra.com.br não respondeu nas duas tentativas, e a busca não trouxe informação confiável sobre a QDRA. Ela fica fora da matriz até alguém do time conferir. A TPC Matchpoint Brasil (apps de clubes) e o MatchPoint de usematchpoint.app aparecem separados porque não consegui confirmar se são a mesma empresa.
 
+## 0. O que ouvimos dos jogadores (contado em 15/11/2026, 8h)
+
+| Canal | Pergunta | Perderam pelo menos 1 jogo nas últimas 4 semanas | 3 ou mais |
+|---|---|---|---|
+| Formulário (Tally) | Quantos jogos seus foram cancelados ou não aconteceram por falta de gente? | 15 de 20 | 6 |
+| Grupo de WhatsApp 1 | Quantas vezes você quis jogar e não rolou por falta de gente ou de parceiro do seu nível? | 8 de 11 (3 não jogam, fora da conta) | 2 |
+| Grupo de WhatsApp 2 | A mesma da linha de cima | 5 de 5 | 2 |
+| **Total** | | **28 de 36 (78%)** | **10** |
+
+- As perguntas não são idênticas: o formulário fala em jogo cancelado; as enquetes, em querer jogar e não rolar. As duas medem o jogo que não aconteceu por falta de gente.
+- Pode haver a mesma pessoa em mais de um canal. O Tally mostra 20 envios de 17 respondentes únicos e 99 visitas.
+- Barreiras no formulário (até 2 por pessoa): não conhece lugares ou gente 11 de 20; horários não batem 7; grupo desmarca ou fura 7; falta parceiro do nível 3; preço da quadra 2.
+- Quando podem jogar (formulário): noite em dia útil 13 de 20; sábado à tarde ou noite 12; domingo à tarde ou noite 11.
+- Nível: 17 de 20 são básico ou intermediário. Frequência: 16 de 20 jogam de 1 a 4 vezes por mês.
+- Onde jogam (12 responderam): a Arena Criciúma aparece 3 vezes; as outras 9 respostas citam lugares diferentes.
+
 ## 1. O que o mercado já resolve
 
 | Quem | O que faz | Como ganha dinheiro | Limite para o nosso caso |

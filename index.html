@@ -135,6 +135,10 @@ section{display:grid;gap:10px}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
 .passos{margin:0;padding-left:22px;display:grid;gap:10px}
 .prova{font-size:15px;border-left:4px solid var(--cta);padding:2px 0 2px 12px}
+/* Pesquisa: uma barra por canal, mesma pergunta */
+.ev{display:grid;gap:10px}
+.ev-top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.bar.ev-bar>span{background:var(--accent)}
 .codigo{font-family:var(--font-display);font-size:1.25em;letter-spacing:.12em;text-transform:uppercase}
 .filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .filtros .check{grid-column:1/-1}
@@ -254,6 +258,24 @@ details[open]>summary{margin-bottom:14px}
 /* ---------- Configuração ---------- */
 var APP = "Fechou";
 var TALLY_URL = "https://tally.so/r/Ar2MZ0";
+/* O que ouvimos dos jogadores. Só números reais, contados das telas do Tally e de 2 enquetes de WhatsApp em 15/11/2026.
+   "sim" = perdeu pelo menos 1 jogo por falta de gente nas últimas 4 semanas; "de" = quem joga ("Não jogo" fica fora).
+   Formulário: "quantos jogos seus foram cancelados ou não aconteceram por falta de gente?"
+   Enquetes: "quantas vezes você quis jogar e não rolou por falta de gente ou de parceiro do seu nível?" */
+var PESQUISA = {
+  canais: [
+    { fonte: "Formulário", sim: 15, de: 20, tresMais: 6 },
+    { fonte: "Grupo de WhatsApp 1", sim: 8, de: 11, tresMais: 2 },
+    { fonte: "Grupo de WhatsApp 2", sim: 5, de: 5, tresMais: 2 }
+  ],
+  votosEnquete: 19, naoJogam: 3,
+  semGente: 11, furam: 7, respForm: 20,
+  horarios: [["Seg–sex noite", 13], ["Sáb tarde/noite", 12], ["Dom tarde/noite", 11]],
+  /* "Em qual arena ou clube você mais joga?" (opcional, 12 respostas). "Arena criciuna" contada como Arena Criciúma. */
+  ondeJogam: [["Arena Criciúma", 3], ["Pedra Branca", 1], ["CAIC", 1], ["Ginásio Bolha", 1], ["Extensão X", 1], ["Pit Stop", 1], ["Sportpark", 1], ["Orige", 1], ["Maniacs", 1], ["Quadras públicas", 1]],
+  respOnde: 12,
+  data: "15/11/2026"
+};
 var ESPORTES = ["Vôlei de praia","Futevôlei","Beach tennis","Padel","Tênis","Futebol society ou futsal"];
 var TOTAL_PADRAO = {"Vôlei de praia":4,"Futevôlei":4,"Beach tennis":4,"Padel":4,"Tênis":2,"Futebol society ou futsal":10};
 var NIVEIS = ["","Iniciante","Básico","Intermediário","Avançado","Competitivo"];
@@ -625,7 +647,7 @@ VIEWS.inicio = function(v){
       "<li><b>Marque:</b> esporte, nível, dia e lugar. Leva 1 minuto.</li>" +
       "<li><b>Mande o link</b> nos seus grupos ou deixe público no app.</li>" +
       "<li><b>Fechou:</b> quem combina entra, e você não joga sozinho.</li></ol></section>" +
-    '<p class="prova">Ouvimos 20 jogadores da região: <b>15 tiveram jogo que não aconteceu por falta de gente</b> no último mês, e 11 dizem que não conhecem gente ou lugares para jogar. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
+    provaCurta() +
     '<section class="card stack"><span class="kicker">Para arenas</span><h2>Tem horário vazio na sua quadra?</h2>' +
       "<p>O Fechou leva jogadores para os horários que não enchem. Piloto de 30 dias, grátis.</p>" +
       '<a class="btn ghost block" href="#arenas">Quero ser arena piloto</a></section>' +
@@ -687,6 +709,35 @@ function pintarPedidoArena(){
     });
   });
 }
+function totaisPesquisa(){
+  var t = { sim: 0, de: 0, tresMais: 0 };
+  PESQUISA.canais.forEach(function(c){ t.sim += c.sim; t.de += c.de; t.tresMais += c.tresMais; });
+  return t;
+}
+function provaCurta(){
+  var t = totaisPesquisa();
+  return '<p class="prova">Perguntamos em ' + PESQUISA.canais.length + ' canais: <b>' + t.sim + ' de ' + t.de + ' jogadores perderam jogo por falta de gente</b> nas últimas 4 semanas. No formulário, ' + PESQUISA.semGente + ' de ' + PESQUISA.respForm + ' dizem que não conhecem gente ou lugares para jogar. <span class="muted">Formulário e 2 grupos de WhatsApp, nov/2026.</span></p>';
+}
+/* completo = painel do time: mostra também horários e onde jogam. */
+function blocoPesquisa(completo){
+  var P = PESQUISA, t = totaisPesquisa();
+  var barras = P.canais.map(function(c){
+    var pct = Math.round(100 * c.sim / c.de);
+    return '<div><div class="ev-top"><span>' + esc(c.fonte) + '</span><b>' + c.sim + " de " + c.de + "</b></div>" +
+      '<div class="bar ev-bar" role="img" aria-label="' + c.sim + " de " + c.de + ", " + pct + '%"><span style="width:' + pct + '%"></span></div></div>';
+  }).join("");
+  var extra = !completo ? "" :
+    "<p><b>Quando querem jogar</b> <span class=\"muted\">(formulário, " + P.respForm + " respostas)</span><br>" +
+      P.horarios.map(function(h){ return esc(h[0]) + " " + h[1]; }).join(" · ") + "</p>" +
+    "<p><b>Onde jogam</b> <span class=\"muted\">(" + P.respOnde + " responderam)</span><br>" +
+      P.ondeJogam.map(function(a){ return esc(a[0]) + (a[1] > 1 ? " <b>" + a[1] + "</b>" : ""); }).join(" · ") + "</p>";
+  return '<section class="card stack ev" aria-label="Pesquisa com jogadores"><span class="kicker">O que ouvimos</span>' +
+    "<h2>" + t.sim + " de " + t.de + " jogadores perderam jogo por falta de gente</h2>" +
+    '<p class="note">Nas últimas 4 semanas. Em ' + P.canais.length + " canais diferentes, o resultado se repete:</p>" + barras +
+    "<p>" + t.tresMais + " perderam 3 jogos ou mais. No formulário, " + P.semGente + " de " + P.respForm + " dizem que não conhecem gente ou lugares para jogar, e " + P.furam + " que o grupo desmarca ou fura.</p>" +
+    extra +
+    '<p class="note">Formulário: ' + P.respForm + " respostas. Enquetes em 2 grupos de WhatsApp: " + P.votosEnquete + " votos, dos quais " + P.naoJogam + " não jogam e ficaram fora da conta. Pode haver a mesma pessoa em mais de um canal. Contado em " + P.data + ".</p></section>";
+}
 VIEWS.arenas = function(){
   app.innerHTML = '<a class="back" href="#painel">← Início</a>' +
     '<div class="card stack"><span class="kicker">Para arenas</span><h1>Horário vazio vira quadra cheia</h1>' +
@@ -695,7 +746,7 @@ VIEWS.arenas = function(){
     "<li><b>O Fechou chama</b> quem combina com aquele horário.</li>" +
     "<li><b>O jogo fecha</b> e a quadra é paga a você, do jeito que já é hoje.</li></ol>" +
     '<p class="note">Piloto de 30 dias, grátis. Você não troca de sistema, e o Fechou não mexe na sua agenda.</p></div>' +
-    '<p class="prova">Ouvimos 20 jogadores da região: <b>15 perderam jogo por falta de gente</b> no último mês. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
+    blocoPesquisa(false) +
     '<section class="card stack" id="ar-box"></section>';
   pintarPedidoArena();
 };
@@ -946,6 +997,7 @@ VIEWS.painel = function(v){
     '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
     '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
     '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
+    blocoPesquisa(true) +
     '<section id="p-arenas-sec" hidden><div class="sec-head"><h2>Arenas que pediram o piloto</h2><button type="button" class="link" data-acao="copiar-link-arenas">Copiar link da página</button></div><div class="list" id="p-arenas"></div></section>' +
     '<section class="card stack" id="p-time"></section>' +
     '<p class="note"><a href="#perfil">Meu perfil</a> · <a href="#jogos">Jogos abertos</a> · Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
