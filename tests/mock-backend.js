@@ -32,6 +32,11 @@
       if (!donoDoJogo(mct[1])) return false;
       return op === "delete" || (chaves(d) === "zap" && typeof d.zap === "string" && d.zap.length <= 15);
     }
+    if (col === "arenas_piloto"){
+      if (ehEquipe()) return true;
+      return op === "set" && !store.has(p) && chaves(d) === "arena,cidade,contato,criadoEm,modelo,preco,vazios,whatsapp" &&
+        ["jogo", "mensal", "nao-sei"].indexOf(d.modelo) >= 0 && typeof d.whatsapp === "string" && d.whatsapp.length >= 10 && d.whatsapp.length <= 15;
+    }
     if (col === "perfis"){
       var idp = p.split("/").pop();
       if (!usuario || usuario.uid !== idp) return false;

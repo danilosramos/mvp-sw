@@ -270,7 +270,7 @@ var DIAS_CURTO = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 /* ---------- Estado ---------- */
 var S = {
   estado: "carregando", db: null, conta: null, usuario: null, authPronto: false, verificandoAdmin: false, admin: false,
-  jogos: [], confs: [], jogadores: [], convites: [], configs: [], perfis: [], interesses: [], criandoCodigo: false,
+  jogos: [], confs: [], jogadores: [], convites: [], configs: [], perfis: [], interesses: [], arenasPiloto: [], criandoCodigo: false,
   perfil: null, perfilCarregado: false, querPremium: false, subsMeus: [], depoisDoPerfil: "",
   promptInstalar: null, swEspera: null, recarregarAoTrocar: false,
   carregado: {}, confirmado: {}, lento: false, erroCarga: null, subsAdm: [], timerLento: null,
@@ -531,11 +531,11 @@ function rota(){
   var h = (location.hash || "").replace(/^#/, "");
   if (h.indexOf("convite-") === 0) return { nome: "convite", id: h.slice(8) };
   if (h.indexOf("jogo-") === 0) return { nome: "jogo", id: h.slice(5) };
-  if (["novo", "jogadores", "perfil", "jogos", "premium", "privacidade"].indexOf(h) >= 0) return { nome: h };
+  if (["novo", "jogadores", "perfil", "jogos", "premium", "privacidade", "arenas"].indexOf(h) >= 0) return { nome: h };
   return { nome: "painel" };
 }
 function montar(){
-  var r = rota(), nome = r.nome, publica = ["convite", "jogos", "premium", "privacidade"].indexOf(nome) >= 0;
+  var r = rota(), nome = r.nome, publica = ["convite", "jogos", "premium", "privacidade", "arenas"].indexOf(nome) >= 0;
   if (S.estado !== "pronto") nome = S.estado;
   else if (!publica){
     if (!S.authPronto || S.verificandoAdmin) nome = "carregando";
@@ -626,7 +626,10 @@ VIEWS.inicio = function(v){
       "<li><b>Mande o link</b> nos seus grupos ou deixe público no app.</li>" +
       "<li><b>Fechou:</b> quem combina entra, e você não joga sozinho.</li></ol></section>" +
     '<p class="prova">Ouvimos 20 jogadores da região: <b>15 tiveram jogo que não aconteceu por falta de gente</b> no último mês, e 11 dizem que não conhecem gente ou lugares para jogar. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
-    '<p class="note">É de uma arena? Entre e use o código do time em “Meus jogos”.</p>';
+    '<section class="card stack"><span class="kicker">Para arenas</span><h2>Tem horário vazio na sua quadra?</h2>' +
+      "<p>O Fechou leva jogadores para os horários que não enchem. Piloto de 30 dias, grátis.</p>" +
+      '<a class="btn ghost block" href="#arenas">Quero ser arena piloto</a></section>' +
+    '<p class="note">Já é do time de uma arena? Entre e use o código em “Meus jogos”.</p>';
   ligarLoginGoogle("fl-google", "fl-erro");
   v.update = function(){
     var abertos = S.jogos.filter(function(g){ return g.visibilidade === "publico" && !g.teste && !jaPassou(g) && !estadoJogo(g).fechado; })
@@ -635,6 +638,78 @@ VIEWS.inicio = function(v){
     $("#in-lista").innerHTML = abertos.map(cardPublico).join("");
   };
 };
+function pintarPedidoArena(){
+  var box = $("#ar-box");
+  if (lsGet("arenaPiloto") === "1"){
+    box.innerHTML = '<div class="status ok">Pedido recebido!</div><p>O time do Fechou vai chamar você no WhatsApp para combinar o piloto.</p>' +
+      '<p><button type="button" class="link" data-acao="outra-arena">Cadastrar outra arena</button></p>';
+    return;
+  }
+  box.innerHTML = "<h2>Quero ser arena piloto</h2>" +
+    '<form id="f-arena-piloto" class="form" novalidate>' +
+      '<label class="fld">Nome da arena<input id="fa-arena" autocomplete="organization"></label>' +
+      '<label class="fld">Cidade<input id="fa-cidade" list="dl-cidades-a" autocomplete="address-level2"></label>' +
+      '<datalist id="dl-cidades-a">' + CIDADES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
+      '<div class="two"><label class="fld">Seu nome<input id="fa-contato" autocomplete="given-name"></label>' +
+      '<label class="fld">WhatsApp<input id="fa-zap" inputmode="tel" autocomplete="tel" placeholder="(48) 9 9999-9999"></label></div>' +
+      '<div class="two"><label class="fld">Horários vazios por semana<input id="fa-vazios" type="number" inputmode="numeric" min="0" max="200" placeholder="Ex.: 10"></label>' +
+      '<label class="fld">Preço médio da hora (R$)<input id="fa-preco" inputmode="decimal" placeholder="Ex.: 90"></label></div>' +
+      '<fieldset class="seg"><legend>Depois do piloto, como faria sentido pagar?</legend>' +
+        '<label><input type="radio" name="famodelo" value="jogo"><span>Por jogo fechado<small>Só paga quando o Fechou encher um horário vazio.</small></span></label>' +
+        '<label><input type="radio" name="famodelo" value="mensal"><span>Mensalidade<small>Valor fixo por mês.</small></span></label>' +
+        '<label><input type="radio" name="famodelo" value="nao-sei" checked><span>Ainda não sei<small>Quero ver o piloto primeiro.</small></span></label>' +
+      "</fieldset>" +
+      '<div id="fa-erro" class="banner" role="alert" hidden></div>' +
+      '<button class="btn primary block big" type="submit" id="fa-enviar">Pedir o piloto</button>' +
+      '<p class="note">Só a equipe do Fechou vê esses dados. Pedir o piloto não gera cobrança nem compromisso.</p>' +
+    "</form>";
+  $("#f-arena-piloto").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var erroEl = $("#fa-erro");
+    function falha(m){ erroEl.textContent = m; erroEl.hidden = false; erroEl.scrollIntoView({ block: "center" }); }
+    var arena = $("#fa-arena").value.trim(), cidade = $("#fa-cidade").value.trim().replace(/\s+/g, " "), contato = $("#fa-contato").value.trim();
+    if (arena.length < 2) return falha("Escreva o nome da arena.");
+    if (cidade.length < 2) return falha("Escreva a cidade.");
+    if (contato.length < 2) return falha("Escreva seu nome.");
+    var zap = normalizarZap($("#fa-zap").value);
+    if (!zap) return falha("WhatsApp: DDD e número, como (48) 9 9999-9999.");
+    var vRaw = $("#fa-vazios").value.trim(), vazios = vRaw === "" ? null : parseInt(vRaw, 10);
+    if (vazios !== null && !(vazios >= 0 && vazios <= 200)) return falha("Horários vazios: um número de 0 a 200.");
+    var preco = lerValor($("#fa-preco").value);
+    if (preco === undefined) return falha("Preço: use só números, como 90 ou 90,50.");
+    var modelo = ($("#f-arena-piloto").querySelector('input[name="famodelo"]:checked') || {}).value || "nao-sei";
+    var btn = $("#fa-enviar"); btn.disabled = true; erroEl.hidden = true;
+    gravar(function(){
+      return S.db.doc("arenas_piloto/" + novoId()).set({ arena: arena.slice(0, 80), cidade: cidade.slice(0, 60), contato: contato.slice(0, 60), whatsapp: zap, vazios: vazios, preco: preco, modelo: modelo, criadoEm: Date.now() });
+    }).then(function(r){
+      if (!r.ok){ btn.disabled = false; return; }
+      lsSet("arenaPiloto", "1"); pintarPedidoArena(); $("#ar-box").scrollIntoView({ block: "center" });
+    });
+  });
+}
+VIEWS.arenas = function(){
+  app.innerHTML = '<a class="back" href="#painel">← Início</a>' +
+    '<div class="card stack"><span class="kicker">Para arenas</span><h1>Horário vazio vira quadra cheia</h1>' +
+    "<p>Tem gente querendo jogar e sem com quem. O Fechou junta essas pessoas por esporte, nível e horário e leva o jogo para o horário que a sua arena não enche.</p>" +
+    '<ol class="passos"><li><b>Você conta</b> quais horários ficam vazios.</li>' +
+    "<li><b>O Fechou chama</b> quem combina com aquele horário.</li>" +
+    "<li><b>O jogo fecha</b> e a quadra é paga a você, do jeito que já é hoje.</li></ol>" +
+    '<p class="note">Piloto de 30 dias, grátis. Você não troca de sistema, e o Fechou não mexe na sua agenda.</p></div>' +
+    '<p class="prova">Ouvimos 20 jogadores da região: <b>15 perderam jogo por falta de gente</b> no último mês. <span class="muted">Pesquisa do time, nov/2026.</span></p>' +
+    '<section class="card stack" id="ar-box"></section>';
+  pintarPedidoArena();
+};
+function rowArena(a){
+  var modelo = a.modelo === "jogo" ? "paga por jogo fechado" : a.modelo === "mensal" ? "prefere mensalidade" : "ainda não sabe";
+  var linha = [];
+  if (a.vazios != null) linha.push(a.vazios + plural(Number(a.vazios), " horário vazio", " horários vazios") + " por semana");
+  if (Number(a.preco) > 0) linha.push(brl(a.preco) + " a hora");
+  return '<div class="prow"><div class="avatar" aria-hidden="true">' + esc(iniciais(a.arena)) + "</div>" +
+    '<div><div class="pname">' + esc(a.arena) + ' <span class="chip' + (a.modelo === "jogo" ? " ok" : "") + '">' + modelo + "</span></div>" +
+    '<div class="psub">' + esc(a.cidade || "") + " · " + esc(a.contato || "") + " · " + esc(hhmm(a.criadoEm)) + "</div>" +
+    (linha.length ? '<div class="psub">' + esc(linha.join(" · ")) + "</div>" : "") + "</div>" +
+    '<div class="pact"><a class="btn zap sm" target="_blank" rel="noopener" href="' + esc(waLink(a.whatsapp, "Oi, " + primeiroNome(a.contato) + "! Aqui é do Fechou. Recebemos o pedido de piloto da " + a.arena + ". Podemos combinar os horários?")) + '">Chamar</a></div></div>';
+}
 VIEWS.privacidade = function(){
   app.innerHTML = '<a class="back" href="#painel">← Voltar</a><h1>Privacidade e segurança</h1>' +
     '<section class="card stack"><h2>O que o Fechou guarda</h2><ul class="beneficios">' +
@@ -864,11 +939,13 @@ VIEWS.painel = function(v){
       '<div class="tile"><span class="lbl">Jogadores na base</span><span class="num" id="t-base">—</span><span class="sub" id="t-base-sub"></span></div>' +
       '<div class="tile"><span class="lbl">Jogos abertos</span><span class="num" id="t-abertos">—</span><span class="sub">reais, esperando gente</span></div>' +
       '<div class="tile"><span class="lbl">Pediram o Premium</span><span class="num" id="t-premium">—</span><span class="sub">lista de espera</span></div>' +
+      '<div class="tile big"><span class="lbl">Arenas que pediram o piloto</span><span class="num" id="t-arenas">—</span><span class="sub" id="t-arenas-sub"></span></div>' +
     "</section>" +
     '<a class="btn primary block big" href="#novo">Marcar jogo</a>' +
     '<section><h2>Jogos abertos</h2><div class="list" id="l-abertos"></div></section>' +
     '<section><h2>Fecharam</h2><div class="list" id="l-fechados"></div></section>' +
     '<p class="note">Os números contam só jogos reais. Jogo de teste aparece na lista com a marca “teste” e fica fora da conta.</p>' +
+    '<section id="p-arenas-sec" hidden><div class="sec-head"><h2>Arenas que pediram o piloto</h2><button type="button" class="link" data-acao="copiar-link-arenas">Copiar link da página</button></div><div class="list" id="p-arenas"></div></section>' +
     '<section class="card stack" id="p-time"></section>' +
     '<p class="note"><a href="#perfil">Meu perfil</a> · <a href="#jogos">Jogos abertos</a> · Conectado como ' + esc((S.usuario && S.usuario.email) || "") + '. <button type="button" class="link" data-acao="sair-conta">Sair</button></p>';
   v.update = function(){
@@ -883,6 +960,17 @@ VIEWS.painel = function(v){
     var doForm = S.jogadores.filter(function(j){ return j.origem === "tally"; }).length;
     setText("t-base-sub", doForm + " do formulário · " + S.perfis.length + plural(S.perfis.length, " perfil", " perfis") + " no app");
     setText("t-premium", S.interesses.length);
+    var ap = S.arenasPiloto.slice().sort(function(a, b){ return (b.criadoEm || 0) - (a.criadoEm || 0); });
+    var parado = 0, comDados = 0, porJogo = 0;
+    ap.forEach(function(a){
+      if (a.modelo === "jogo") porJogo++;
+      if (Number(a.vazios) > 0 && Number(a.preco) > 0){ parado += Number(a.vazios) * Number(a.preco); comDados++; }
+    });
+    setText("t-arenas", ap.length);
+    setText("t-arenas-sub", !ap.length ? "Mande o link da página “Para arenas”."
+      : (comDados ? brl(parado) + " de quadra parada por semana, declarados por " + comDados + plural(comDados, " arena", " arenas") + ". " : "") + porJogo + plural(porJogo, " topa", " topam") + " pagar por jogo fechado.");
+    $("#p-arenas-sec").hidden = !ap.length;
+    $("#p-arenas").innerHTML = ap.map(rowArena).join("");
     var ord = S.jogos.slice().sort(function(a, b){ return String(a.quando).localeCompare(String(b.quando)); });
     var abertos = ord.filter(function(g){ return !estadoJogo(g).fechado; });
     var fechados = ord.filter(function(g){ return estadoJogo(g).fechado; }).reverse();
@@ -1393,6 +1481,10 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "outra-arena"){
+    lsSet("arenaPiloto", null); pintarPedidoArena();
+  } else if (a === "copiar-link-arenas"){
+    copiar(location.origin + location.pathname + "#arenas", "Link copiado");
   } else if (a === "filtrar-esporte"){
     var ff = lerFiltros(); ff.esporte = t.getAttribute("data-esporte"); lsSet("filtros", JSON.stringify(ff));
     location.hash = "jogos";
@@ -1526,9 +1618,9 @@ function assinarPublico(){
 }
 function desassinarAdmin(){
   S.subsAdm.forEach(function(u){ try { u(); } catch(e){} });
-  S.subsAdm = []; S.jogadores = []; S.convites = []; S.configs = []; S.perfis = []; S.interesses = []; S.carregado.jogadores = false; S.carregado.convites = false; S.carregado.config = false;
+  S.subsAdm = []; S.jogadores = []; S.convites = []; S.configs = []; S.perfis = []; S.interesses = []; S.arenasPiloto = []; S.carregado.jogadores = false; S.carregado.convites = false; S.carregado.config = false;
 }
-function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false), sub("config", "configs", false), sub("perfis", "perfis", false), sub("interesse_premium", "interesses", false)]; }
+function assinarAdmin(){ desassinarAdmin(); S.subsAdm = [sub("jogadores", "jogadores", false), sub("convites", "convites", false), sub("config", "configs", false), sub("perfis", "perfis", false), sub("interesse_premium", "interesses", false), sub("arenas_piloto", "arenasPiloto", false)]; }
 function desassinarMeus(){
   S.subsMeus.forEach(function(u){ try { u(); } catch(e){} });
   S.subsMeus = []; S.perfil = null; S.perfilCarregado = false; S.querPremium = false;

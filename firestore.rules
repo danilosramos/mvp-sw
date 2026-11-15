@@ -138,6 +138,26 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Arenas que pedem o piloto: qualquer um envia o pedido; só o time lê.
+    match /arenas_piloto/{id} {
+      allow read, update, delete: if ehEquipe();
+      allow create: if request.resource.data.keys().hasOnly(['arena', 'cidade', 'contato', 'whatsapp', 'vazios', 'preco', 'modelo', 'criadoEm'])
+        && request.resource.data.arena is string
+        && request.resource.data.arena.size() >= 2
+        && request.resource.data.arena.size() <= 80
+        && request.resource.data.cidade is string
+        && request.resource.data.cidade.size() <= 60
+        && request.resource.data.contato is string
+        && request.resource.data.contato.size() <= 60
+        && request.resource.data.whatsapp is string
+        && request.resource.data.whatsapp.size() >= 10
+        && request.resource.data.whatsapp.size() <= 15
+        && (request.resource.data.vazios == null || request.resource.data.vazios is number)
+        && (request.resource.data.preco == null || request.resource.data.preco is number)
+        && request.resource.data.modelo in ['jogo', 'mensal', 'nao-sei']
+        && request.resource.data.criadoEm is number;
+    }
+
     match /jogadores/{id} {
       allow read, write: if ehEquipe();
     }
