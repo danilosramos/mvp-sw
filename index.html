@@ -708,7 +708,8 @@ function rowArena(a){
     '<div><div class="pname">' + esc(a.arena) + ' <span class="chip' + (a.modelo === "jogo" ? " ok" : "") + '">' + modelo + "</span></div>" +
     '<div class="psub">' + esc(a.cidade || "") + " · " + esc(a.contato || "") + " · " + esc(hhmm(a.criadoEm)) + "</div>" +
     (linha.length ? '<div class="psub">' + esc(linha.join(" · ")) + "</div>" : "") + "</div>" +
-    '<div class="pact"><a class="btn zap sm" target="_blank" rel="noopener" href="' + esc(waLink(a.whatsapp, "Oi, " + primeiroNome(a.contato) + "! Aqui é do Fechou. Recebemos o pedido de piloto da " + a.arena + ". Podemos combinar os horários?")) + '">Chamar</a></div></div>';
+    '<div class="pact"><a class="btn zap sm" target="_blank" rel="noopener" href="' + esc(waLink(a.whatsapp, "Oi, " + primeiroNome(a.contato) + "! Aqui é do Fechou. Recebemos o pedido de piloto da " + a.arena + ". Podemos combinar os horários?")) + '">Chamar</a>' +
+    '<button class="btn ghost sm danger" type="button" data-acao="remover-arena" data-id="' + esc(a.id) + '">Remover</button></div></div>';
 }
 VIEWS.privacidade = function(){
   app.innerHTML = '<a class="back" href="#painel">← Voltar</a><h1>Privacidade e segurança</h1>' +
@@ -1481,6 +1482,10 @@ document.addEventListener("click", function(ev){
     S.conta.sair().then(function(){ toast("Você saiu da conta"); });
   } else if (a === "copiar-uid"){
     if (S.usuario) copiar(S.usuario.uid, "ID copiado");
+  } else if (a === "remover-arena"){
+    if (!armar(t, "Toque de novo para remover")) return;
+    var aid = t.getAttribute("data-id"); t.disabled = true;
+    gravar(function(){ return S.db.doc("arenas_piloto/" + aid).delete(); }).then(function(r){ if (r.ok) toast("Pedido removido"); else t.disabled = false; });
   } else if (a === "outra-arena"){
     lsSet("arenaPiloto", null); pintarPedidoArena();
   } else if (a === "copiar-link-arenas"){

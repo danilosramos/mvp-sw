@@ -72,6 +72,8 @@ async def main():
         await pg.click("#fa-enviar"); await pg.wait_for_selector("text=Pedido recebido!", timeout=5000)
         await pg.evaluate("location.hash='painel'"); await pg.wait_for_selector("#t-reais"); await pg.wait_for_selector("#p-arenas .prow", timeout=5000)
         print("A arenas no painel:", await pg.text_content("#t-arenas"), "|", txt(await pg.text_content("#t-arenas-sub")), "|", txt(await pg.inner_text("#p-arenas"))[:90])
+        await pg.click("button[data-acao=remover-arena]"); await pg.click("button[data-acao=remover-arena]"); await pg.wait_for_timeout(400)
+        print("A arena removida, sobra:", await pg.text_content("#t-arenas"))
         await pg.click("button[data-acao=sair-conta]")
         await pg.wait_for_selector("text=Falta gente pro seu jogo?", timeout=5000)
         print("A sair: página inicial | nav:", txt(await pg.inner_text("#nav")))
