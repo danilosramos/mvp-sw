@@ -24,7 +24,7 @@ service cloud.firestore {
 
     function jogoDeJogadorValido() {
       return request.auth != null
-        && request.resource.data.keys().hasOnly(['arena', 'esporte', 'nivel', 'quando', 'total', 'vagas', 'valor', 'situacao', 'teste', 'criadoEm', 'donoUid', 'donoNome', 'donoZap', 'origem', 'visibilidade', 'cidade', 'cidadeChave', 'tipoLocal'])
+        && request.resource.data.keys().hasOnly(['arena', 'esporte', 'nivel', 'quando', 'total', 'vagas', 'valor', 'situacao', 'teste', 'criadoEm', 'donoUid', 'donoNome', 'origem', 'visibilidade', 'cidade', 'cidadeChave', 'tipoLocal'])
         && request.resource.data.donoUid == request.auth.uid
         && request.resource.data.origem == 'jogador'
         && request.resource.data.teste == false
@@ -167,7 +167,10 @@ service cloud.firestore {
     }
 
     match /jogos/{id} {
-      allow read: if true;
+      // FIX S1: Restrict private game enumeration (2026-11-16 security hardening)
+      allow read: if resource.data.visibilidade == 'publico'
+                  || (request.auth != null && resource.data.donoUid == request.auth.uid)
+                  || ehEquipe();
       allow create: if ehEquipe() || jogoDeJogadorValido();
       allow update: if ehEquipe();
       allow delete: if ehEquipe() || (request.auth != null && resource.data.donoUid == request.auth.uid);

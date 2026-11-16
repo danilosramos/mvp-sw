@@ -7,6 +7,9 @@ import {
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  initializeAppCheck, getReCaptchaV3Provider
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check.js";
 
 const resolver = window.__resolverBackend || function () {};
 const cfg = window.FIREBASE_CONFIG || {};
@@ -16,6 +19,18 @@ if (!cfg.apiKey || cfg.apiKey === "COLE_AQUI" || !cfg.projectId) {
 } else {
   try {
     const app = initializeApp(cfg);
+
+    // FIX: Enable App Check to prevent automated abuse (2026-11-16 security hardening)
+    try {
+      initializeAppCheck(app, {
+        provider: getReCaptchaV3Provider("6Lc..."),  // TODO: Configure reCAPTCHA key in Firebase Console
+        isTokenAutoRefreshEnabled: true,
+        forceRefresh: false
+      });
+    } catch (e) {
+      console.warn("App Check initialization failed (non-critical):", e);
+    }
+
     const fs = getFirestore(app);
     const auth = getAuth(app);
 
