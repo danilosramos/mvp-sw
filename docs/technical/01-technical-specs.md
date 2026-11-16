@@ -1,8 +1,13 @@
 # SPECS: Especificações Técnicas do Energia Boa
 
-Data: 16/11/2026. Baseado em: `PRD.md`.
+Data: 16/11/2026. Baseado em: [`PRD.md`](01-prd-phase1-2.md).
 
-Este documento descreve as especificações técnicas necessárias para implementar os requisitos do PRD em duas fases. Cada seção aborda um aspecto da arquitetura, estrutura de dados ou integração.
+**Este é um documento de implementação técnica.** Para requisitos, consulte [PRD.md](01-prd-phase1-2.md).
+
+Este documento descreve especificações técnicas necessárias para implementar os requisitos do PRD em duas fases:
+- **Seção 1:** Stack e premissas arquiteturais
+- **Seção 2:** Dados — referência para schema Firestore (veja [PRD seção 8](01-prd-phase1-2.md#8-modelo-de-dados-e-migração))
+- **Seção 3-15:** Implementação, padrões, checklist
 
 ---
 
@@ -27,6 +32,10 @@ Este documento descreve as especificações técnicas necessárias para implemen
 ---
 
 ## 2. Estrutura de Dados
+
+> **Referência técnica de:**  [`PRD.md` seção 8 — Modelo de Dados e Migração](01-prd-phase1-2.md#8-modelo-de-dados-e-migração)
+> 
+> Este é o esquema Firestore da autoridade. Para decisões sobre design e campos, consulte PRD.
 
 ### 2.1 Coleções Raiz (Fase 1)
 
