@@ -1,3 +1,12 @@
+---
+title: "PRD: Product Requirements Document"
+owner: "Product"
+version: "2026.11.16.1"
+status: "current"
+last_updated: "2026-11-16"
+next_review: "2026-12-01"
+---
+
 # PRD: alterações indicadas na auditoria do Energia Boa
 
 Data: 16/11/2026. Origem: `AUDITORIA-COMPLETA.md`. Os códigos entre parênteses (S1, N2, D3, C4, F5, M1) são os achados daquela auditoria.
