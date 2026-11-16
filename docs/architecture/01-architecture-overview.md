@@ -1,5 +1,8 @@
 # Arquitetura da Energia Boa
 
+> 📝 **Atualizado em 16/11/2026** após rebranding e alinhamento com schema Fase 2.
+> Campos corrigidos: `donoZap` → `jogos/{id}/contato`, "Reserva gerada" → "Valor de quadra confirmado"
+
 App de página única no GitHub Pages (`index.html`), com Firebase: login Google e Firestore ao vivo. Sem servidor próprio. As permissões ficam em `firestore.rules`.
 
 ## Casos de uso
@@ -21,7 +24,7 @@ flowchart LR
   J --> C8[Gerenciar confirmados do próprio jogo]
   T --> C5
   T --> C9[Ver quem combina e convidar no WhatsApp]
-  T --> C10[Painel: reservas geradas em R$]
+  T --> C10[Painel: valor de quadra confirmado]
   T --> C11[Importar base do formulário]
 ```
 
@@ -44,7 +47,7 @@ sequenceDiagram
   App->>DB: cria confirmacoes/{id}
   DB-->>App: placar ao vivo 3/3
   App-->>Ana: Fechou!
-  App-->>Time: Reserva gerada: R$
+  App-->>Time: Valor de quadra confirmado
   Note over Beto,App: Jogo cheio → lista de espera. Se alguém sai, o próximo entra.
 ```
 
@@ -76,7 +79,7 @@ classDiagram
     visibilidade publico|privado
     donoUid
     donoNome
-    donoZap
+    contato (subcoleção: WhatsApp sob acesso restrito)
     origem jogador|equipe
     teste
   }

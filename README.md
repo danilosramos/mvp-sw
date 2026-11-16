@@ -2,16 +2,30 @@
 
 <img src="icons/logo-energia-boa.png" alt="Logo da Energia Boa: cavalo e raio em roxo e limão" width="320">
 
-Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026). Antes se chamava Fechou. O visual segue a logo do time e o [design system](DESIGN.md).
+Jogos com vaga para arenas esportivas. MVP do time no Startup Weekend Araranguá (novembro de 2026). O visual segue o [design system](docs/design/01-design-system.md).
 
 **Hipótese:** gente sem parceiro vira reserva num horário que a arena não vende.
 
-Quem quer jogar marca o jogo (sozinho ou com um grupo incompleto), e a arena ou o time também abrem horários vagos. Quem quer entrar num jogo toca em **Procurar** e filtra por esporte, dia da semana e período do dia. O app mostra quem da base combina: mesmo esporte, mesmo nível (Iniciante, Intermediário ou Avançado) e horário que a pessoa marcou. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app. Quando completa, aparece **Fechou! Reserva gerada: R$ X**.
+Quem quer jogar marca o jogo (sozinho ou com um grupo incompleto), e a arena ou o time também abrem horários vagos. Quem quer entrar num jogo toca em **Procurar** e filtra por esporte, dia da semana e período do dia. O app mostra quem da base combina: mesmo esporte, mesmo nível (Iniciante, Intermediário ou Avançado) e horário que a pessoa marcou. A equipe convida pelo WhatsApp com a mensagem pronta, e o jogador confirma em um toque, sem conta e sem baixar app.
 
-- App: https://danilosramos.github.io/mvp-sw/
+- App: https://danilosramos.github.io/mvp-sw/ (endereço oficial a definir — ver [decisão 6](docs/product/02-decisions-log.md))
 - Convite de um jogo: `https://danilosramos.github.io/mvp-sw/#convite-<id>`
 
-## O que é real e o que fica de fora
+## 📚 Documentação
+
+**Acesse [docs/00-INDEX.md](docs/00-INDEX.md) para navegação completa.**
+
+Leitura recomendada por rol:
+- **Negócio:** [Estratégia](docs/strategy/01-business-model.md) → [PRD](docs/product/01-prd-phase1-2.md) → [Arena Kickoff](docs/operations/arena-pilot-playbook.md)
+- **Engenharia:** [Arquitetura](docs/architecture/01-architecture-overview.md) → [Dados](docs/architecture/02-data-model.md) → [Specs](docs/technical/01-technical-specs.md) → [Testes](docs/technical/04-testing-strategy.md)
+- **Design:** [Design System](docs/design/01-design-system.md)
+- **Auditoria:** [Achados](docs/decisions/01-audit-findings-2026-11-16.md) → [Blockers](docs/decisions/03-blockers-critical-path.md)
+
+**Status Atual:**
+- 🔴 Phase 1 Shippability: **4.5/10** — [Ver blockers](docs/decisions/03-blockers-critical-path.md)
+- 🟠 3 Vulnerabilidades críticas: [Ver remediation](docs/decisions/02-security-issues-remediation.md)
+- 🟡 71 Requisitos: [Ver PRD](docs/product/01-prd-phase1-2.md)
+
 
 | Funciona de verdade | Fica de fora no MVP |
 |---|---|
@@ -51,15 +65,9 @@ O arquivo de jogadores tem nome e WhatsApp de pessoas reais: **nunca suba esse a
 
 ## Como usar
 
-Documentos do projeto:
+Ver [docs/00-INDEX.md](docs/00-INDEX.md) para documentação organizada.
 
-- [`ESTRATEGIA.md`](ESTRATEGIA.md): mercado, concorrentes, modelo de negócio, canvas, simulação e entrada no mercado.
-- [`AUDITORIA.md`](AUDITORIA.md): diagnóstico, o que mudou, testes executados, limitações e roadmap.
-- [`DESIGN.md`](DESIGN.md): tipografia, cores com contraste medido, tokens, componentes e referências.
-- [`ARQUITETURA.md`](ARQUITETURA.md): casos de uso, sequência, dados e telas.
-- [`REQUISITOS.md`](REQUISITOS.md): requisitos do MVP e o que ficou para depois.
-
-**Quem quer jogar (sozinho ou com um grupo incompleto)**
+**Fluxo principal:**
 
 1. Abre o app e toca em **Entrar com Google para marcar**. No primeiro acesso, preenche o perfil: cidade, esportes, nível, quando pode jogar e WhatsApp (opcional).
 2. **Marcar jogo**: esporte, nível, dia e hora, arena, cidade, quantos são no total e quantos já são. Escolhe se o jogo é **público no app** ou **privado** (só com o link).
@@ -97,7 +105,7 @@ Os dados dos testes são fictícios.
 2. No palco, ligue **Ocultar nomes**: os nomes reais da base viram apelidos.
 3. **Marcar jogo**: **Privado** (assim o colega entra sem conta), arena, vôlei de praia, nível 3, próximo sábado às 18h, preço real, **Jogo de teste**.
 4. Aparecem os jogadores reais que combinam. Toque em **Convidar** no colega.
-5. Ele toca no link e em **Tô dentro**. No telão: **Fechou! R$ X de quadra para a arena**.
+5. Ele toca no link e em **Tô dentro**. No telão: **Fechou! Jogo confirmado**.
 
 A data do jogo precisa ser futura: um jogo que já passou não aceita confirmação.
 
