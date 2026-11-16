@@ -1,3 +1,13 @@
+---
+title: "Data Model — Firestore Schema"
+owner: "Engineering"
+version: "2026.11.16.1"
+status: "current"
+last_updated: "2026-11-16"
+next_review: "2026-12-01"
+depends_on: ["../product/01-prd-phase1-2.md", "03-firestore-rules.md"]
+---
+
 # Modelo de Dados — Energia Boa
 
 **Fonte de autoridade:** [`PRD.md` seção 8](../product/01-prd-phase1-2.md#8-modelo-de-dados-e-migração)

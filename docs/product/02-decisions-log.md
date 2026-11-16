@@ -1,3 +1,13 @@
+---
+title: "Decisions Log"
+owner: "Product"
+version: "2026.11.16.1"
+status: "current"
+last_updated: "2026-11-16"
+next_review: "2026-12-01"
+depends_on: ["01-prd-phase1-2.md"]
+---
+
 # Decisões do Projeto — Energia Boa
 
 **Data:** 16/11/2026  
